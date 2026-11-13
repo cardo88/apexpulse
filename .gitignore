@@ -1,0 +1,36 @@
+# Capa privada del autor: repo git independiente anidado (ADR 0008)
+/.private/
+
+# Datos locales: nunca se versionan
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+web/dist/
+web/.astro/
+
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+
+# Sistema
+.DS_Store
+
+# Claude Code: configuración personal local
+.claude/settings.local.json
+CLAUDE.local.md
