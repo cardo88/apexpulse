@@ -4,7 +4,10 @@ version = "0.0.0"
 description = "Lectura de carrera de F1 en español: fuentes, modelo canónico, replay, motor de lecturas y API."
 license = "MIT"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "httpx>=0.28",
+    "zstandard>=0.23",
+]
 
 [dependency-groups]
 dev = [
@@ -36,4 +39,5 @@ mypy_path = "../../scripts"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tests"]
 addopts = "-ra"

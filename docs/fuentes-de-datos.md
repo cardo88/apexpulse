@@ -1,6 +1,6 @@
 # Fuentes de datos
 
-Todas las fuentes son públicas y no oficiales. El esquema del feed de F1 se obtuvo por ingeniería inversa y cambió durante 2025 y 2026; por eso cada fuente tiene un adaptador aislado y el crudo se guarda siempre. Última verificación: 2026-11-08.
+Todas las fuentes son públicas y no oficiales. El esquema del feed de F1 se obtuvo por ingeniería inversa y cambió durante 2025 y 2026; por eso cada fuente tiene un adaptador aislado y el crudo se guarda siempre. Última verificación: 2026-11-14.
 
 ## Resumen
 
@@ -22,6 +22,67 @@ Todas las fuentes son públicas y no oficiales. El esquema del feed de F1 se obt
 ```bash
 curl -s "https://api.openf1.org/v1/sessions?year=2026&session_name=Race" | head -c 400
 ```
+
+### Adaptador (`sources/openf1.py`)
+
+`make fetch SESSION=2026-sao-paulo-r` baja la sesión en 8 requests y la deja en caché:
+
+```text
+2026-sao-paulo-r (openf1, session_key 11412): 8 requests
+  laps             1437 registros
+  stints             80 registros
+  pit                58 registros
+  intervals       29368 registros
+  position          576 registros
+  race_control      212 registros
+  weather           160 registros
+Crudo en .../data/raw/2026/2026-sao-paulo-r/openf1
+```
+
+1. Si existe `data/raw/<año>/<sesion>/openf1/manifest.json`, no hace ningún request. `FORCE=1` ignora la caché.
+2. Resuelve el `session_key` con `sessions?year=<año>`, filtrando por `circuit_short_name` (columna `openf1` de `services/core/src/apexpulse/config/circuits.toml`) y `session_name`. La lista del año se cachea en `data/raw/<año>/_openf1/sessions.jsonl.zst`; si la sesión no está en caché, se vuelve a pedir (el calendario del año en curso se completa con el tiempo).
+3. Rechaza la sesión si `is_cancelled` es verdadero o si todavía no pasaron 30 minutos desde `date_end`.
+4. Pide cada endpoint con `?session_key=<n>`, valida el esquema y guarda el crudo tal como llegó en `<endpoint>.jsonl.zst`. Un 404 con `No results found` cuenta como lista vacía y genera un aviso.
+5. Escribe `manifest.json` al final, con el registro de la sesión, los conteos y los avisos. Sin manifiesto, la descarga se considera incompleta y se rehace.
+
+Tipos de sesión del identificador y su `session_name` en OpenF1:
+
+| Tipo | session_name |
+|------|--------------|
+| r | Race |
+| q | Qualifying |
+| s | Sprint |
+| sq | Sprint Qualifying (Sprint Shootout en 2023) |
+| fp1, fp2, fp3 | Practice 1, Practice 2, Practice 3 |
+
+Los ensayos de pretemporada (`Day 1` a `Day 3`) no tienen tipo en el identificador.
+
+### Límite de tasa y reintentos
+
+- `RateLimiter` con dos ventanas deslizantes: 3 requests en cualquier segundo y 30 en cualquier minuto.
+- Los instantes de los últimos requests se guardan en `data/state/openf1-ratelimit.json`: varias ejecuciones de `make fetch` seguidas comparten el presupuesto.
+- Ante 429, 5xx o error de red reintenta hasta 5 veces. Espera lo que indique `Retry-After`, o 1, 2, 4, 8 y 16 s (máximo 60 s).
+
+### Validación del esquema
+
+Verificada contra `2026-sao-paulo-r` (session_key 11412) el 2026-11-14. Un campo obligatorio faltante, o un registro de otra sesión, hace fallar la descarga con `SchemaError`. Un campo que no figura en la lista de conocidos genera un aviso con una muestra, por ejemplo `stints: campos desconocidos: tyre_temperature=98.5`.
+
+| Endpoint | Obligatorios | Otros conocidos |
+|----------|--------------|-----------------|
+| sessions | session_key, meeting_key, year, session_name, circuit_short_name, date_start, date_end | session_type, circuit_key, country_key, country_code, country_name, location, gmt_offset, is_cancelled |
+| laps | session_key, driver_number, lap_number, date_start, lap_duration | meeting_key, duration_sector_1 a 3, i1_speed, i2_speed, st_speed, is_pit_out_lap, segments_sector_1 a 3 |
+| stints | session_key, driver_number, stint_number, lap_start, lap_end, compound | meeting_key, tyre_age_at_start |
+| pit | session_key, driver_number, lap_number, date | meeting_key, pit_duration, stop_duration, lane_duration |
+| intervals | session_key, driver_number, date, gap_to_leader, interval | meeting_key |
+| position | session_key, driver_number, date, position | meeting_key |
+| race_control | session_key, date, category, message | meeting_key, driver_number, lap_number, flag, scope, sector, qualifying_phase |
+| weather | session_key, date, air_temperature, track_temperature, rainfall | meeting_key, humidity, pressure, wind_direction, wind_speed |
+
+Un campo obligatorio puede venir en `null` (por ejemplo, `lap_duration` de la vuelta 1); lo que falla es que la clave no exista.
+
+### Tests
+
+`services/core/tests/contract/test_openf1.py` usa las respuestas grabadas de `fixtures/sessions/2026-sao-paulo-r/openf1/` servidas con `httpx.MockTransport`. `tests/conftest.py` bloquea los sockets: un test que intente usar la red falla. Diagnóstico de errores en [runbook.md](runbook.md#fuentes-de-datos).
 
 ## Archivo estático de F1 Live Timing
 

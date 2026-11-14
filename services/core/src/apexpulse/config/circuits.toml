@@ -1,0 +1,108 @@
+# Circuitos admitidos en el identificador de sesión <año>-<circuito>-<tipo>.
+#
+# La clave es el slug del identificador (minúsculas, sin acentos, palabras separadas por guion).
+# - nombre: nombre legible en español.
+# - openf1: valor exacto de circuit_short_name en https://api.openf1.org/v1/sessions.
+#
+# Verificado contra sessions?year=2026 el 2026-11-14. Para sumar un circuito, consultar
+# ese endpoint para el año que corresponda y copiar circuit_short_name tal cual.
+
+[circuitos.abu-dabi]
+nombre = "Abu Dabi"
+openf1 = "Yas Marina Circuit"
+
+[circuitos.arabia-saudita]
+nombre = "Arabia Saudita"
+openf1 = "Jeddah"
+
+[circuitos.australia]
+nombre = "Australia"
+openf1 = "Melbourne"
+
+[circuitos.austria]
+nombre = "Austria"
+openf1 = "Spielberg"
+
+[circuitos.azerbaiyan]
+nombre = "Azerbaiyán"
+openf1 = "Baku"
+
+[circuitos.bahrein]
+nombre = "Baréin"
+openf1 = "Sakhir"
+
+[circuitos.barcelona]
+nombre = "Barcelona"
+openf1 = "Catalunya"
+
+[circuitos.belgica]
+nombre = "Bélgica"
+openf1 = "Spa-Francorchamps"
+
+[circuitos.canada]
+nombre = "Canadá"
+openf1 = "Montreal"
+
+[circuitos.china]
+nombre = "China"
+openf1 = "Shanghai"
+
+[circuitos.emilia-romana]
+nombre = "Emilia-Romaña"
+openf1 = "Imola"
+
+[circuitos.estados-unidos]
+nombre = "Estados Unidos"
+openf1 = "Austin"
+
+[circuitos.gran-bretana]
+nombre = "Gran Bretaña"
+openf1 = "Silverstone"
+
+[circuitos.hungria]
+nombre = "Hungría"
+openf1 = "Hungaroring"
+
+[circuitos.italia]
+nombre = "Italia"
+openf1 = "Monza"
+
+[circuitos.japon]
+nombre = "Japón"
+openf1 = "Suzuka"
+
+[circuitos.las-vegas]
+nombre = "Las Vegas"
+openf1 = "Las Vegas"
+
+[circuitos.madrid]
+nombre = "Madrid"
+openf1 = "Madring"
+
+[circuitos.mexico]
+nombre = "México"
+openf1 = "Mexico City"
+
+[circuitos.miami]
+nombre = "Miami"
+openf1 = "Miami"
+
+[circuitos.monaco]
+nombre = "Mónaco"
+openf1 = "Monte Carlo"
+
+[circuitos.paises-bajos]
+nombre = "Países Bajos"
+openf1 = "Zandvoort"
+
+[circuitos.qatar]
+nombre = "Qatar"
+openf1 = "Lusail"
+
+[circuitos.sao-paulo]
+nombre = "São Paulo"
+openf1 = "Interlagos"
+
+[circuitos.singapur]
+nombre = "Singapur"
+openf1 = "Singapore"

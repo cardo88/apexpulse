@@ -4,8 +4,9 @@
 CORE := services/core
 UV_RUN := uv run --locked --directory $(CORE)
 PYTHON ?= python3
+DATA_DIR ?= $(CURDIR)/data
 
-.PHONY: help setup check lint typecheck test check-docs check-skills check-private mapa
+.PHONY: help setup check lint typecheck test check-docs check-skills check-private mapa fetch
 
 help: ## Lista los targets disponibles
 	@grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -38,3 +39,7 @@ check-private: ## Falla si algo de la capa privada quedó versionado
 
 mapa: ## Regenera docs/ai/mapa-codigo.md
 	@$(PYTHON) scripts/mapa.py
+
+fetch: ## Descarga y cachea una sesión de OpenF1 (SESSION=<id>; FORCE=1 ignora la caché)
+	@test -n "$(SESSION)" || { echo "Uso: make fetch SESSION=2026-sao-paulo-r" >&2; exit 2; }
+	@$(UV_RUN) python -m apexpulse fetch $(SESSION) --data-dir $(DATA_DIR) $(if $(FORCE),--force)
