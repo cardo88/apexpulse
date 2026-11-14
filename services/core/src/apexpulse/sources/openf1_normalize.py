@@ -6,6 +6,9 @@ se deriva de `race_control` con `trackstatus.derive_track_status`.
 
 Los registros que no se pueden ubicar en el tiempo se omiten y se informan como aviso, agrupados
 por motivo, por ejemplo `laps: 2 vueltas sin tiempo ni vuelta siguiente, omitidas`.
+
+`drivers` no trae fecha: cada `DriverInfo` lleva el inicio de la sesión según el calendario. Un
+crudo bajado antes de sumar ese endpoint se normaliza igual, sin pilotos y con un aviso.
 """
 
 from __future__ import annotations
@@ -20,6 +23,7 @@ from typing import Any
 
 from apexpulse.model.events import (
     Compound,
+    DriverInfo,
     Event,
     IntervalUpdated,
     LapCompleted,
@@ -39,6 +43,7 @@ SOURCE = "openf1"
 MANIFEST = "manifest.json"
 
 _RE_VUELTAS = re.compile(r"^\+(\d+) LAPS?$")
+_RE_SIGLA = re.compile(r"^[A-Z]{3}$")
 
 
 def _instante(valor: Any, contexto: str) -> datetime:
@@ -102,6 +107,22 @@ def normalize_openf1(session: SessionId, destino: Path) -> Normalized:
     avisos = _Avisos()
     eventos: list[Event] = []
 
+    meta = SessionMeta(
+        session=str(session),
+        source=SOURCE,
+        source_session_key=int(info["session_key"]),
+        circuit=session.circuit_info.nombre,
+        start=_instante(info["date_start"], "sessions"),
+        end=_instante(info["date_end"], "sessions"),
+    )
+    if "drivers" in datos["endpoints"]:
+        eventos += _drivers(leer("drivers"), meta.start, avisos)
+    else:
+        avisos.sumar(
+            "drivers: el crudo no tiene drivers, sin pilotos",
+            f"correr make fetch SESSION={session}",
+        )
+
     vueltas, inicio_de_vuelta = _laps(leer("laps"), avisos)
     eventos += vueltas
     eventos += _stints(leer("stints"), inicio_de_vuelta, avisos)
@@ -118,15 +139,48 @@ def normalize_openf1(session: SessionId, destino: Path) -> Normalized:
             inicio_del_lider[vuelta] = t
     eventos += derive_track_status(mensajes, inicio_del_lider)
 
-    meta = SessionMeta(
-        session=str(session),
-        source=SOURCE,
-        source_session_key=int(info["session_key"]),
-        circuit=session.circuit_info.nombre,
-        start=_instante(info["date_start"], "sessions"),
-        end=_instante(info["date_end"], "sessions"),
-    )
     return Normalized(meta=meta, events=eventos, warnings=avisos.lista())
+
+
+def _texto(valor: Any) -> str | None:
+    """Texto sin espacios de más; None si falta o queda vacío."""
+    if valor is None:
+        return None
+    limpio = " ".join(str(valor).split())
+    return limpio or None
+
+
+def _drivers(filas: list[dict[str, Any]], inicio: datetime, avisos: _Avisos) -> list[Event]:
+    por_numero: dict[int, DriverInfo] = {}
+    for fila in filas:
+        piloto = int(fila["driver_number"])
+        sigla = _texto(fila["name_acronym"])
+        if sigla is None or _RE_SIGLA.match(sigla) is None:
+            avisos.sumar(
+                "drivers: name_acronym ausente o no es de 3 letras, omitidos",
+                f"piloto {piloto} {fila['name_acronym']!r}",
+            )
+            continue
+        nombre, apellido = _texto(fila.get("first_name")), _texto(fila.get("last_name"))
+        completo = f"{nombre} {apellido}" if nombre and apellido else _texto(fila.get("full_name"))
+        if completo is None:
+            avisos.sumar("drivers: sin nombre, omitidos", f"piloto {piloto} {sigla}")
+            continue
+        evento = DriverInfo(
+            t=inicio,
+            driver=piloto,
+            acronym=sigla,
+            name=completo,
+            team=_texto(fila.get("team_name")),
+        )
+        anterior = por_numero.get(piloto)
+        if anterior is not None and anterior != evento:
+            avisos.sumar(
+                "drivers: número repetido con datos distintos, queda el último",
+                f"piloto {piloto} {anterior.acronym} y {sigla}",
+            )
+        por_numero[piloto] = evento
+    return list(por_numero.values())
 
 
 def _laps(

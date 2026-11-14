@@ -1,4 +1,4 @@
-"""Tests del modelo canónico v1: validación de eventos, orden y Parquet."""
+"""Tests del modelo canónico v1.1: validación de eventos, orden y Parquet."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from pydantic import ValidationError
 from apexpulse.model import (
     SCHEMA_VERSION,
     Compound,
+    DriverInfo,
     Event,
     IntervalUpdated,
     LapCompleted,
@@ -44,6 +45,7 @@ META = SessionMeta(
 
 def _uno_de_cada() -> list[Event]:
     return [
+        DriverInfo(t=T0, driver=44, acronym="HAM", name="Lewis Hamilton", team="Ferrari"),
         LapCompleted(t=T0, driver=12, lap=59, lap_time_s=78.4, s1_s=20.1, pit_out=False),
         StintStarted(t=T0, driver=5, lap=59, stint=5, compound=Compound.SOFT, tyre_age=0),
         PitLane(t=T0, driver=5, lap=59, lane_s=24.824, stationary_s=2.5),
@@ -58,8 +60,8 @@ def _uno_de_cada() -> list[Event]:
 
 
 def test_version_del_esquema() -> None:
-    assert SCHEMA_VERSION == "1.0"
-    assert META.schema_version == "1.0"
+    assert SCHEMA_VERSION == "1.1"
+    assert META.schema_version == "1.1"
 
 
 def test_instante_sin_zona_falla() -> None:
@@ -84,6 +86,25 @@ def test_campo_extra_y_valores_invalidos_fallan() -> None:
         PositionChanged(t=T0, driver=0, position=1)
 
 
+@pytest.mark.parametrize("sigla", ["ham", "HAMI", "HA", "H4M", ""])
+def test_driver_sigla_invalida_falla(sigla: str) -> None:
+    with pytest.raises(ValidationError):
+        DriverInfo(t=T0, driver=44, acronym=sigla, name="Lewis Hamilton")
+
+
+def test_driver_equipo_opcional_y_nombre_obligatorio() -> None:
+    assert DriverInfo(t=T0, driver=44, acronym="HAM", name="Lewis Hamilton").team is None
+    with pytest.raises(ValidationError):
+        DriverInfo(t=T0, driver=44, acronym="HAM", name="")
+
+
+def test_parquet_sin_equipo(tmp_path: Path) -> None:
+    destino = tmp_path / "s.parquet"
+    piloto = DriverInfo(t=T0, driver=51, acronym="CAM", name="Rafael Camara")
+    write_events(destino, META, [piloto])
+    assert read_events(destino) == [piloto]
+
+
 def test_eventos_inmutables() -> None:
     evento = PositionChanged(t=T0, driver=1, position=1)
     with pytest.raises(ValidationError):
@@ -93,6 +114,7 @@ def test_eventos_inmutables() -> None:
 def test_orden_de_desempate() -> None:
     eventos = sorted(reversed(_uno_de_cada()), key=sort_key)
     assert [e.kind for e in eventos] == [
+        "driver",
         "race_control",
         "track_status",
         "lap",
@@ -119,8 +141,9 @@ def test_parquet_columnas_fijas(tmp_path: Path) -> None:
     write_events(destino, META, _uno_de_cada())
     tabla = pq.read_table(destino)
     assert tabla.schema.names == SCHEMA.names
-    assert tabla.column("seq").to_pylist() == list(range(8))
-    assert tabla.column("kind").to_pylist()[:2] == ["race_control", "track_status"]
+    assert tabla.column("seq").to_pylist() == list(range(9))
+    assert tabla.column("kind").to_pylist()[:2] == ["driver", "race_control"]
+    assert tabla.column("acronym").to_pylist()[:2] == ["HAM", None]
 
 
 def test_archivo_ajeno_falla(tmp_path: Path) -> None:

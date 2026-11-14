@@ -27,6 +27,10 @@ SCHEMA = pa.schema(
         ("kind", pa.string()),
         ("driver", pa.int16()),
         ("lap", pa.int16()),
+        # driver
+        ("acronym", pa.string()),
+        ("name", pa.string()),
+        ("team", pa.string()),
         # lap
         ("lap_time_s", pa.float64()),
         ("s1_s", pa.float64()),

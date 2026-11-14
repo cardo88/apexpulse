@@ -8,6 +8,7 @@ Qué cubre el tramo:
 - Segundo SC en la vuelta 66 (14:31:18).
 - Bandera roja en la vuelta 68 (14:35:06), un TRACK CLEAR con la carrera suspendida (15:00:48) y la reanudación (15:12:00).
 - Autos doblados (`gap_to_leader` igual a `"+1 LAP"`).
+- Los 22 pilotos de la carrera (`drivers`), para verificar los códigos de las paradas bajo SC.
 
 | Archivo | Consulta original | Recorte |
 |---------|-------------------|---------|
@@ -19,5 +20,6 @@ Qué cubre el tramo:
 | position.json | `position?session_key=11299` | Ídem |
 | race_control.json | `race_control?session_key=11299` | Ídem |
 | weather.json | `weather?session_key=11299` | Ídem |
+| drivers.json | `drivers?session_key=11299` | Sin recorte (22 pilotos) |
 
 Para regrabar: `make fetch SESSION=2026-monaco-r FORCE=1` y recortar desde `data/raw/2026/2026-monaco-r/openf1/` con el mismo criterio. Pesa 1,1 MB; intervals.json ocupa la mayor parte.

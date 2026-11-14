@@ -29,7 +29,7 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 | `contract.test_openf1` | Test de contrato del adaptador OpenF1 contra respuestas grabadas de 2026-sao-paulo-r. |
 | `contract.test_openf1_normalize` | Test de contrato del normalizador OpenF1 y del endpoint race_control con 2026-monaco-r. |
 | `test_cli` | Tests de la línea de comandos (sin red: solo caminos que no llegan a la fuente). |
-| `test_model` | Tests del modelo canónico v1: validación de eventos, orden y Parquet. |
+| `test_model` | Tests del modelo canónico v1.1: validación de eventos, orden y Parquet. |
 | `test_paquete` | Verifica que el paquete se instala e importa desde el entorno de uv. |
 | `test_ratelimit` | Tests del límite de tasa por ventanas deslizantes. |
 | `test_rawstore` | Tests del crudo en JSONL zstd. |
