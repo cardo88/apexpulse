@@ -6,6 +6,8 @@ Flujo de `fetch` para `2026-sao-paulo-r`:
 3. Pide cada endpoint con `?session_key=<n>`, valida el esquema y guarda el crudo en JSONL zstd.
 4. Escribe el manifiesto al final: su presencia marca la descarga como completa.
 
+`normalize` convierte ese crudo en eventos canónicos v1 (ver sources/openf1_normalize.py).
+
 Límites de OpenF1 sin autenticación: 3 req/s y 30 req/min. Ante 429, 5xx o error de red
 reintenta con backoff exponencial (o lo que indique Retry-After).
 """
@@ -21,10 +23,12 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+from pydantic import ValidationError
 
 from apexpulse import __version__
 from apexpulse.session_id import SESSION_TYPES, SessionId
-from apexpulse.sources.base import FetchReport, SchemaError, SourceError
+from apexpulse.sources.base import FetchReport, Normalized, SchemaError, SourceError
+from apexpulse.sources.openf1_normalize import normalize_openf1
 from apexpulse.sources.ratelimit import RateLimiter
 from apexpulse.sources.rawstore import read_jsonl_zst, write_json, write_jsonl_zst
 
@@ -182,6 +186,15 @@ class OpenF1Adapter:
             },
         )
         return report
+
+    def normalize(self, session: SessionId, raw_root: Path) -> Normalized:
+        """Convierte el crudo de `session` bajo `raw_root` (data/raw) en eventos canónicos v1."""
+        try:
+            return normalize_openf1(session, self.session_dir(raw_root, session))
+        except ValidationError as error:
+            raise SchemaError(
+                f"OpenF1 {session}: un registro no cumple el modelo v1: {error}"
+            ) from error
 
     # Caché -------------------------------------------------------------------------------
 

@@ -15,6 +15,7 @@ import pytest
 RAIZ = Path(__file__).resolve().parents[3]
 FIXTURES = RAIZ / "fixtures" / "sessions"
 OPENF1_SAO_PAULO = FIXTURES / "2026-sao-paulo-r" / "openf1"
+OPENF1_MONACO = FIXTURES / "2026-monaco-r" / "openf1"
 
 
 @pytest.fixture(autouse=True)
@@ -96,3 +97,9 @@ class FakeOpenF1:
 @pytest.fixture
 def openf1(clock: FakeClock) -> Iterator[FakeOpenF1]:
     yield FakeOpenF1(OPENF1_SAO_PAULO, clock)
+
+
+@pytest.fixture
+def openf1_monaco(clock: FakeClock) -> Iterator[FakeOpenF1]:
+    """Tramo del SC y la bandera roja de 2026-monaco-r (session_key 11299)."""
+    yield FakeOpenF1(OPENF1_MONACO, clock)

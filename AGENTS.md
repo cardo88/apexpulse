@@ -34,7 +34,7 @@ Todo se ejecuta por make. La columna "Desde" indica cuándo existe cada target.
 | make check-private                 | Falla si algo privado quedó versionado         | Disponible |
 | make mapa                          | Regenera docs/ai/mapa-codigo.md                | Disponible |
 | make fetch SESSION=<id>            | Descarga y cachea una sesión de OpenF1         | Disponible |
-| make normalize SESSION=<id>        | Genera eventos canónicos                       | H1 t5      |
+| make normalize SESSION=<id>        | Genera eventos canónicos                       | Disponible |
 | make replay SESSION=<id> SPEED=<n> | Reproduce y muestra lecturas                   | H1 t6      |
 | make golden SESSION=<id>           | Regenera la salida esperada (revisar el diff)  | H1 t8      |
 | docker compose up                  | core en :8000, web en :4321                    | H3         |

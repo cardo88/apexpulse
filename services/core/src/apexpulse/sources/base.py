@@ -1,8 +1,4 @@
-"""Contrato común de los adaptadores de fuente y reporte de descarga.
-
-El método `normalize` (crudo a eventos canónicos) se suma al contrato en H1 tarea 5,
-junto con el modelo canónico v1.
-"""
+"""Contrato común de los adaptadores de fuente: descarga del crudo y normalización a eventos v1."""
 
 from __future__ import annotations
 
@@ -10,6 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
 
+from apexpulse.model.events import Event, SessionMeta
 from apexpulse.session_id import SessionId
 
 
@@ -35,6 +32,15 @@ class FetchReport:
     warnings: list[str] = field(default_factory=list)
 
 
+@dataclass
+class Normalized:
+    """Resultado de `SourceAdapter.normalize`: cabecera, eventos sin ordenar y avisos."""
+
+    meta: SessionMeta
+    events: list[Event]
+    warnings: list[str] = field(default_factory=list)
+
+
 class SourceAdapter(Protocol):
     """Adaptador aislado de una fuente. Ninguna otra parte del código conoce su formato."""
 
@@ -42,4 +48,8 @@ class SourceAdapter(Protocol):
 
     def fetch(self, session: SessionId, dest: Path, *, force: bool = False) -> FetchReport:
         """Descarga el crudo de la sesión a `dest` (data/raw), o lo reutiliza si ya está."""
+        ...
+
+    def normalize(self, session: SessionId, raw_root: Path) -> Normalized:
+        """Convierte el crudo ya descargado bajo `raw_root` (data/raw) en eventos canónicos v1."""
         ...

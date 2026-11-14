@@ -65,7 +65,7 @@ Los ensayos de pretemporada (`Day 1` a `Day 3`) no tienen tipo en el identificad
 
 ### Validación del esquema
 
-Verificada contra `2026-sao-paulo-r` (session_key 11412) el 2026-11-14. Un campo obligatorio faltante, o un registro de otra sesión, hace fallar la descarga con `SchemaError`. Un campo que no figura en la lista de conocidos genera un aviso con una muestra, por ejemplo `stints: campos desconocidos: tyre_temperature=98.5`.
+Verificada contra `2026-sao-paulo-r` (session_key 11412) y `2026-monaco-r` (session_key 11299) el 2026-11-14. Un campo obligatorio faltante, o un registro de otra sesión, hace fallar la descarga con `SchemaError`. Un campo que no figura en la lista de conocidos genera un aviso con una muestra, por ejemplo `stints: campos desconocidos: tyre_temperature=98.5`.
 
 | Endpoint | Obligatorios | Otros conocidos |
 |----------|--------------|-----------------|
@@ -82,7 +82,7 @@ Un campo obligatorio puede venir en `null` (por ejemplo, `lap_duration` de la vu
 
 ### Tests
 
-`services/core/tests/contract/test_openf1.py` usa las respuestas grabadas de `fixtures/sessions/2026-sao-paulo-r/openf1/` servidas con `httpx.MockTransport`. `tests/conftest.py` bloquea los sockets: un test que intente usar la red falla. Diagnóstico de errores en [runbook.md](runbook.md#fuentes-de-datos).
+`services/core/tests/contract/test_openf1.py` usa las respuestas grabadas de `fixtures/sessions/2026-sao-paulo-r/openf1/` servidas con `httpx.MockTransport`. `test_openf1_normalize.py` usa `fixtures/sessions/2026-monaco-r/openf1/` (tramo del SC, las paradas bajo SC y la bandera roja): descarga `race_control` y el resto de los endpoints contra OpenF1 simulado y verifica la normalización. `tests/conftest.py` bloquea los sockets: un test que intente usar la red falla. Diagnóstico de errores en [runbook.md](runbook.md#fuentes-de-datos).
 
 ## Archivo estático de F1 Live Timing
 
@@ -110,7 +110,26 @@ Un campo obligatorio puede venir en `null` (por ejemplo, `lap_duration` de la vu
 
 ## Mapeo a eventos canónicos
 
-Se completa en H1, tarea 5, junto con docs/modelo-de-eventos.md.
+`make normalize SESSION=<id>` lee el crudo de OpenF1 y escribe los eventos canónicos v1 en `data/canonical/<sesion>.parquet` (`sources/openf1_normalize.py`). Esquema y versionado en [modelo-de-eventos.md](modelo-de-eventos.md).
+
+| Endpoint | Evento | Mapeo |
+|----------|--------|-------|
+| laps | `lap` | `t` = `date_start` + `lap_duration`; si `lap_duration` es null, el `date_start` de la vuelta siguiente del piloto. `lap_time_s` = `lap_duration`; `s1_s` a `s3_s` = `duration_sector_1` a `3`; `pit_out` = `is_pit_out_lap`. Sin `date_start`, o sin tiempo ni vuelta siguiente: se omite con aviso |
+| stints | `stint` | `t` = `date_start` de la vuelta `lap_start` del piloto; `stint` = `stint_number`; `compound` en mayúsculas (desconocido: `UNKNOWN` con aviso); `tyre_age` = `tyre_age_at_start`. `lap_end` no se usa: sería información del futuro |
+| pit | `pit` | `t` = `date`; `lane_s` = `lane_duration` (o `pit_duration` si falta); `stationary_s` = `stop_duration` |
+| position | `position` | `t` = `date`; `position` |
+| intervals | `interval` | `t` = `date`; número en `gap_to_leader` a `gap_s`, `"+N LAP"` o `"+N LAPS"` a `laps_down`; lo mismo para `interval`. Registros con ambos null se omiten |
+| race_control | `race_control` | `t` = `date`; `category`, `message`, `flag`, `scope`, `sector`; `driver` = `driver_number`; `lap` = `lap_number` |
+| race_control | `track_status` | Derivado con `sources/trackstatus.py`; ver [Estado de pista](modelo-de-eventos.md#estado-de-pista) |
+| weather | `weather` | `t` = `date`; `air_c`, `track_c` = `air_temperature`, `track_temperature`; `rain` = `rainfall` > 0; `humidity_pct`, `wind_ms`, `wind_deg`, `pressure_hpa` = `humidity`, `wind_speed`, `wind_direction`, `pressure` |
+| sessions | Cabecera `SessionMeta` | `source_session_key` = `session_key`; `start`, `end` = `date_start`, `date_end` (calendario, no hora real) |
+
+Particularidades de OpenF1 verificadas con 2026-monaco-r (session_key 11299):
+
+- Con `ALL CARS THROUGH THE PIT LANE` bajo SC, cada auto genera un registro en `pit` sin `stop_duration` (en Mónaco, 18 pasadas y 5 paradas reales durante el SC de la vuelta 60). Solo `stop_duration` distingue una parada de una pasada.
+- Esas pasadas también abren un stint nuevo con el mismo compuesto y `tyre_age_at_start` corrido en una vuelta (por ejemplo, ALO: stint 3 SOFT con 0 vueltas desde la 58 y stint 4 SOFT con 1 desde la 59). Un juego nuevo se reconoce por `tyre_age` 0 o por el cambio de compuesto.
+- La bandera roja llega como `category=Other`, `message="RED FLAG - RACE SUSPENDED"`, sin `flag=RED`, junto con `SessionStatus SESSION ABORTED`.
+- Durante la bandera roja, los autos esperan en el pit lane: `lane_duration` supera los 2000 s.
 
 ## Referencias
 

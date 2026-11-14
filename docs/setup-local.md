@@ -37,6 +37,17 @@ make fetch SESSION=2026-sao-paulo-r FORCE=1  # ignora la caché y vuelve a bajar
 - `DATA_DIR=<ruta>` cambia el directorio de datos (por defecto `data/` en la raíz del repo). Sin make: `uv run --directory services/core python -m apexpulse fetch <id> --data-dir <ruta>`, o la variable `APEXPULSE_DATA_DIR`.
 - Detalle del adaptador, límites y validación en [fuentes-de-datos.md](fuentes-de-datos.md#openf1); errores en [runbook.md](runbook.md#fuentes-de-datos).
 
+## Normalizar una sesión
+
+```bash
+make normalize SESSION=2026-monaco-r   # requiere el crudo de make fetch; no usa la red
+```
+
+- Escribe `data/canonical/<sesion>.parquet` con los eventos canónicos v1 (unos 580 KB por carrera) e imprime los conteos por tipo y los cambios de estado de pista (SC, VSC, rojo) en UTC.
+- Se puede repetir: misma entrada, mismo archivo. Después de cambiar el modelo o el normalizador, volver a correrlo.
+- Sin make: `uv run --directory services/core python -m apexpulse normalize <id> --data-dir <ruta>`.
+- Esquema en [modelo-de-eventos.md](modelo-de-eventos.md); mapeo desde OpenF1 en [fuentes-de-datos.md](fuentes-de-datos.md#mapeo-a-eventos-canónicos).
+
 ## Verificaciones
 
 | Target | Qué verifica | Falla cuando |

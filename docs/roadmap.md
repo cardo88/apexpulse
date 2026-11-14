@@ -57,7 +57,7 @@ Hitos de ApexPulse y su estado. Cada hito cierra con una versión etiquetada y u
 | 2 | ADR 0001 a 0008 | Hecha |
 | 3 | CI en GitHub Actions, check-docs, check-skills, make mapa, hook Stop | Hecha |
 | 4 | Adaptador OpenF1 con caché y límite de tasa; `make fetch` | Hecha |
-| 5 | Modelo canónico v1 y normalizador; docs/modelo-de-eventos.md | Pendiente |
+| 5 | Modelo canónico v1 y normalizador; docs/modelo-de-eventos.md | Hecha |
 | 6 | Reloj de replay y `make replay` | Pendiente |
 | 7 | Reglas "parada barata bajo SC/VSC" y "ventana de undercut" | Pendiente |
 | 8 | Golden test; docs/setup-local.md y docs/lecturas.md | Pendiente |
