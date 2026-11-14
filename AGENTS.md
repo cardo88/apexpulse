@@ -33,7 +33,7 @@ Todo se ejecuta por make. La columna "Desde" indica cuándo existe cada target.
 | make check-docs / check-skills     | Docs y skills al día con el cambio             | Disponible |
 | make check-private                 | Falla si algo privado quedó versionado         | Disponible |
 | make mapa                          | Regenera docs/ai/mapa-codigo.md                | Disponible |
-| make fetch SESSION=<id>            | Descarga y cachea una sesión                   | H1 t4      |
+| make fetch SESSION=<id>            | Descarga y cachea una sesión de OpenF1         | Disponible |
 | make normalize SESSION=<id>        | Genera eventos canónicos                       | H1 t5      |
 | make replay SESSION=<id> SPEED=<n> | Reproduce y muestra lecturas                   | H1 t6      |
 | make golden SESSION=<id>           | Regenera la salida esperada (revisar el diff)  | H1 t8      |
@@ -64,7 +64,7 @@ Todo se ejecuta por make. La columna "Desde" indica cuándo existe cada target.
 | nuevo-adr           | Registrar una decisión                               | Activo   |
 | sesion-replay       | Descargar, recortar y reproducir sesiones; golden    | Activo   |
 | nueva-lectura       | Agregar o ajustar una regla del motor                | H1 t7    |
-| fuente-de-datos     | Fuente nueva o cambio de esquema del feed            | H1 t4    |
+| fuente-de-datos     | Fuente nueva o cambio de esquema del feed            | Activo   |
 | ui-componente       | Vistas y componentes con los tokens del proyecto     | H3       |
 | post-carrera        | Generar y revisar el análisis de una sesión (manual) | H4       |
 | release             | Cortar una versión (manual)                          | H5       |

@@ -1,6 +1,6 @@
 # Contexto para agentes
 
-Digest de la arquitectura y de las decisiones vigentes. Límite: 200 líneas. Se actualiza con cada ADR o cambio de arquitectura (skill cambio-documentado). Última actualización: 2026-11-09.
+Digest de la arquitectura y de las decisiones vigentes. Límite: 200 líneas. Se actualiza con cada ADR o cambio de arquitectura (skill cambio-documentado). Última actualización: 2026-11-14.
 
 ## Producto
 
@@ -43,7 +43,7 @@ Pendientes: 0009 ingesta residencial (H7) y 0010 nube objetivo (H6).
 
 ## Fuentes
 
-- OpenF1: primaria del MVP; histórico desde 2023; 3 req/s y 30 req/min.
+- OpenF1: primaria del MVP; histórico desde 2023; 3 req/s y 30 req/min. Adaptador en sources/openf1.py con caché en data/raw y límite compartido en data/state (`make fetch`).
 - Archivo estático de Live Timing: segunda fuente, mismo formato que el vivo, solo desde IP residencial.
 - Jolpica-F1: contexto (standings y resultados).
 
@@ -51,7 +51,7 @@ Detalle en docs/fuentes-de-datos.md.
 
 ## Stack
 
-Python 3.13 con uv, Pydantic v2, FastAPI con SSE, JSONL zstd, Parquet y DuckDB, Astro con islas Svelte y TypeScript, SVG propio con d3-scale y d3-shape, Docker Compose y Makefile, GitHub Actions y Terraform.
+Python 3.13 con uv, httpx, zstandard, Pydantic v2, FastAPI con SSE, JSONL zstd, Parquet y DuckDB, Astro con islas Svelte y TypeScript, SVG propio con d3-scale y d3-shape, Docker Compose y Makefile, GitHub Actions y Terraform.
 
 ## Convenciones
 

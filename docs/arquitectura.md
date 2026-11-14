@@ -43,7 +43,9 @@ Layout de datos:
 
 ```text
 data/
-├── raw/<año>/<sesion>/<fuente>/*.jsonl.zst   # crudo tal como llegó
+├── raw/<año>/<sesion>/<fuente>/*.jsonl.zst   # crudo tal como llegó, más manifest.json
+├── raw/<año>/_<fuente>/                       # catálogo de sesiones del año por fuente
+├── state/                                     # estado del límite de tasa por fuente
 ├── canonical/<sesion>.parquet                 # eventos canónicos v1
 └── site/post/<sesion>.json                    # entrada del post-carrera
 ```
