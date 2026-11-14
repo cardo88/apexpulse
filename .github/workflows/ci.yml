@@ -1,0 +1,55 @@
+# Verificaciones de cada PR y de main. No descarga datos de ninguna fuente de F1:
+# los tests usan solo fixtures versionados (AGENTS.md, reglas no negociables).
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: ruff, mypy y pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/core/uv.lock
+      - name: Instalar dependencias
+        run: uv sync --locked --directory services/core
+      - name: ruff
+        run: make lint
+      - name: mypy
+        run: make typecheck
+      - name: pytest
+        run: make test
+
+  docs:
+    name: check-docs, check-skills y check-private
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: check-private
+        run: make check-private
+      - name: check-skills
+        run: make check-skills
+      - name: check-docs
+        env:
+          BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: make check-docs

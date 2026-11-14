@@ -20,10 +20,13 @@ Si no afecta documentación, se justifica por escrito.
 7. Si existe .private/estado.md, actualizarlo y commitearlo en el repo privado
    (`git -C .private ...`). Nunca mezclar archivos privados en un commit del
    repo público.
-8. Correr `make check` (hoy incluye check-private; check-docs y check-skills se
-   suman en H1 tarea 3). Debe pasar.
+8. Correr `make check` (lint, typecheck, test, check-docs, check-skills y
+   check-private, lo mismo que CI). Debe pasar.
 
 ## Matriz: si tocás X, actualizá Y
+`make check-docs` verifica las filas que se pueden detectar por ruta (MATRIZ en
+scripts/check_docs.py). Al cambiar esta tabla, actualizar también el script.
+
 | Cambio en                                    | Actualizar                                          |
 |----------------------------------------------|-----------------------------------------------------|
 | services/core/src/apexpulse/sources/         | docs/fuentes-de-datos.md, fixtures de contrato      |
@@ -55,4 +58,5 @@ formato. Se declara en el PR o en el mensaje del commit:
 "Docs: sin impacto, refactor interno de store/ sin cambios de interfaz".
 
 ## Fuente de verdad
-docs/README.md (índice) y .github/pull_request_template.md.
+docs/README.md (índice), .github/pull_request_template.md y
+scripts/check_docs.py (reglas que verifica CI).

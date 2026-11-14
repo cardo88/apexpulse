@@ -6,7 +6,9 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 fail=0
 
-if ! git check-ignore -q .private; then
+# Con barra final: la regla /.private/ solo aplica a directorios y en un clon
+# limpio (CI) la carpeta no existe, así que git no sabría que es un directorio.
+if ! git check-ignore -q .private/; then
   echo "ERROR: .private/ no está ignorado. Falta la regla /.private/ en .gitignore."
   fail=1
 fi

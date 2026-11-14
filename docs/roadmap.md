@@ -55,7 +55,7 @@ Hitos de ApexPulse y su estado. Cada hito cierra con una versión etiquetada y u
 |-------|-------------|--------|
 | 1 | Estructura, LICENSE, DISCLAIMER, README, AGENTS.md, CLAUDE.md, CHANGELOG, skills base | Hecha |
 | 2 | ADR 0001 a 0008 | Hecha |
-| 3 | CI en GitHub Actions, check-docs, check-skills, make mapa, hook Stop | Pendiente (check-private ya existe) |
+| 3 | CI en GitHub Actions, check-docs, check-skills, make mapa, hook Stop | Hecha |
 | 4 | Adaptador OpenF1 con caché y límite de tasa; `make fetch` | Pendiente |
 | 5 | Modelo canónico v1 y normalizador; docs/modelo-de-eventos.md | Pendiente |
 | 6 | Reloj de replay y `make replay` | Pendiente |

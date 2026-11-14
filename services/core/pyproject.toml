@@ -1,0 +1,39 @@
+[project]
+name = "apexpulse"
+version = "0.0.0"
+description = "Lectura de carrera de F1 en español: fuentes, modelo canónico, replay, motor de lecturas y API."
+license = "MIT"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "mypy>=1.13",
+    "pytest>=8.3",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/apexpulse"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests", "../../scripts"]
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "D100", "D104"]
+
+[tool.mypy]
+strict = true
+python_version = "3.13"
+files = ["src", "tests", "../../scripts"]
+mypy_path = "../../scripts"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
