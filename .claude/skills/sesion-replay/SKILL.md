@@ -5,8 +5,8 @@ description: Descarga, normaliza, recorta y reproduce sesiones de F1 en ApexPuls
 
 # Sesión y replay
 
-Estado: `make fetch` está disponible; el resto de los targets llega en H1,
-tareas 5 a 8. Antes de usarlos, confirmar en la tabla de comandos de AGENTS.md
+Estado: `make fetch` y `make normalize` están disponibles; el resto de los
+targets llega en H1, tareas 6 a 8. Antes de usarlos, confirmar en la tabla de comandos de AGENTS.md
 que existen.
 
 ## Identificador de sesión
@@ -27,7 +27,11 @@ services/core/src/apexpulse/config/circuits.toml.
 
 ## Reglas
 - Los fixtures se recortan al tramo que prueba algo, pesan menos de 2 MB y se
-  versionan en fixtures/sessions/.
+  versionan en fixtures/sessions/, con un README que diga la consulta original
+  y el recorte. Ejemplo: fixtures/sessions/2026-monaco-r/openf1/ (SC con
+  paradas, segundo SC y bandera roja, 14:15 a 15:15 UTC).
+- `make normalize` es repetible y sin red: después de cambiar el modelo o el
+  normalizador, volver a correrlo sobre el crudo de data/raw.
 - data/ nunca se versiona.
 - Errores de descarga o de esquema: usar el skill fuente-de-datos.
 - Golden se regenera solo con un motivo y revisando el diff completo; el

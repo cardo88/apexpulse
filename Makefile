@@ -6,7 +6,7 @@ UV_RUN := uv run --locked --directory $(CORE)
 PYTHON ?= python3
 DATA_DIR ?= $(CURDIR)/data
 
-.PHONY: help setup check lint typecheck test check-docs check-skills check-private mapa fetch
+.PHONY: help setup check lint typecheck test check-docs check-skills check-private mapa fetch normalize
 
 help: ## Lista los targets disponibles
 	@grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -43,3 +43,7 @@ mapa: ## Regenera docs/ai/mapa-codigo.md
 fetch: ## Descarga y cachea una sesión de OpenF1 (SESSION=<id>; FORCE=1 ignora la caché)
 	@test -n "$(SESSION)" || { echo "Uso: make fetch SESSION=2026-sao-paulo-r" >&2; exit 2; }
 	@$(UV_RUN) python -m apexpulse fetch $(SESSION) --data-dir $(DATA_DIR) $(if $(FORCE),--force)
+
+normalize: ## Genera los eventos canónicos v1 en data/canonical (SESSION=<id>; requiere make fetch)
+	@test -n "$(SESSION)" || { echo "Uso: make normalize SESSION=2026-sao-paulo-r" >&2; exit 2; }
+	@$(UV_RUN) python -m apexpulse normalize $(SESSION) --data-dir $(DATA_DIR)

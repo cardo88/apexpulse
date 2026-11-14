@@ -18,6 +18,14 @@ Digest de la arquitectura y de las decisiones vigentes. Límite: 200 líneas. Se
 
 Adaptadores por fuente, modelo canónico v1, reloj de replay, motor de lecturas, API (REST y SSE) y web Astro. Datos en archivos bajo ./data. Detalle en docs/arquitectura.md.
 
+## Modelo canónico v1
+
+- Ocho eventos inmutables con `t` en UTC: lap, stint, pit, position, interval, race_control, track_status y weather (model/events.py, versión `SCHEMA_VERSION` 1.0).
+- Un Parquet ancho por sesión en data/canonical/<sesion>.parquet, orden total con `sort_key` y salida determinística (`make normalize`).
+- `track_status` se deriva de race_control (sources/trackstatus.py). `NEUTRALIZED` = SC, SC_ENDING, VSC y VSC_ENDING; el rojo queda aparte.
+- `pit.stationary_s` null es una pasada por el pit lane, no una parada.
+- Detalle en docs/modelo-de-eventos.md.
+
 ## Decisiones vigentes
 
 | ADR | Decisión |
@@ -43,7 +51,7 @@ Pendientes: 0009 ingesta residencial (H7) y 0010 nube objetivo (H6).
 
 ## Fuentes
 
-- OpenF1: primaria del MVP; histórico desde 2023; 3 req/s y 30 req/min. Adaptador en sources/openf1.py con caché en data/raw y límite compartido en data/state (`make fetch`).
+- OpenF1: primaria del MVP; histórico desde 2023; 3 req/s y 30 req/min. Adaptador en sources/openf1.py con caché en data/raw y límite compartido en data/state (`make fetch`); normalizador en sources/openf1_normalize.py (`make normalize`).
 - Archivo estático de Live Timing: segunda fuente, mismo formato que el vivo, solo desde IP residencial.
 - Jolpica-F1: contexto (standings y resultados).
 

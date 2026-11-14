@@ -6,8 +6,8 @@ description: Agrega o modifica un adaptador de fuente de datos de ApexPulse (Ope
 # Fuente de datos
 
 Cada fuente tiene un adaptador aislado en services/core/src/apexpulse/sources/
-que guarda el crudo, valida la entrada y (desde H1 tarea 5) emite eventos
-canónicos. Ninguna otra parte del código conoce el formato de una fuente
+que guarda el crudo, valida la entrada y emite eventos canónicos v1
+(docs/modelo-de-eventos.md). Ninguna otra parte del código conoce el formato de una fuente
 (ADR 0002).
 
 ## Contrato
@@ -15,13 +15,18 @@ canónicos. Ninguna otra parte del código conoce el formato de una fuente
 class SourceAdapter(Protocol):          # sources/base.py
     name: str  # "openf1", "f1static", "jolpica", "f1live"
     def fetch(self, session: SessionId, dest: Path, *, force: bool = False) -> FetchReport: ...
-    # H1 tarea 5: def normalize(self, raw: Path) -> Iterator[CanonicalEvent]: ...
+    def normalize(self, session: SessionId, raw_root: Path) -> Normalized: ...
 ~~~
 - `dest` es la raíz data/raw. El crudo queda en
   `data/raw/<año>/<sesion>/<fuente>/<endpoint>.jsonl.zst` más `manifest.json`,
   que se escribe al final y marca la descarga como completa.
 - `FetchReport` lleva registros por endpoint, requests hechos, si vino de la
   caché y los avisos de validación.
+- `normalize` lee solo el crudo (sin red) y devuelve `Normalized`: cabecera
+  `SessionMeta`, eventos de apexpulse.model sin ordenar y avisos agrupados por
+  motivo. Errores de Pydantic se reportan como `SchemaError`. Ejemplo:
+  sources/openf1_normalize.py. Si la fuente no publica el estado de pista,
+  derivarlo con `derive_track_status` (sources/trackstatus.py).
 - Piezas reutilizables: `RateLimiter` (sources/ratelimit.py) y
   `write_jsonl_zst` / `read_jsonl_zst` (sources/rawstore.py).
 
@@ -45,21 +50,22 @@ class SourceAdapter(Protocol):          # sources/base.py
 1. Documentar en docs/fuentes-de-datos.md: URL base, autenticación, límites,
    términos de uso y cobertura temporal.
 2. Escribir en el mismo documento la tabla de mapeo de cada campo de origen
-   al evento canónico (desde H1 tarea 5).
+   al evento canónico (ejemplo: sección "Mapeo a eventos canónicos" de OpenF1).
 3. Grabar respuestas reales chicas, recortadas a pocos registros y sin
    modificar, en fixtures/sessions/<id>/<fuente>/ (menos de 2 MB), con un
    README que diga de dónde salen y cuándo se grabaron.
 4. Implementar el adaptador y su test de contrato en
-   services/core/tests/contract/test_<fuente>.py. Ejemplo completo:
-   test_openf1.py (caché, límite de tasa, 429, esquema, sesión no disponible).
+   services/core/tests/contract/test_<fuente>.py. Ejemplos completos:
+   test_openf1.py (caché, límite de tasa, 429, esquema, sesión no disponible)
+   y test_openf1_normalize.py (normalización con un tramo real con SC).
 5. Si la fuente usa otro nombre de circuito, sumar la columna en
    services/core/src/apexpulse/config/circuits.toml.
 6. Cerrar con el skill cambio-documentado.
 
 ## Cambio de esquema
-1. Reproducir con el crudo guardado en data/raw (desde H1 tarea 5:
-   `make normalize SESSION=<id>`) y leer los avisos del `FetchReport` o del
-   manifiesto.
+1. Reproducir con el crudo guardado en data/raw
+   (`make normalize SESSION=<id>`) y leer los avisos del `FetchReport`, del
+   manifiesto o de la normalización.
 2. Guardar la muestra que falla como fixture nuevo.
 3. Ajustar `SCHEMAS` y el parser manteniendo compatibilidad con el formato
    anterior si ambos conviven.
@@ -79,5 +85,5 @@ class SourceAdapter(Protocol):          # sources/base.py
 | 403 desde CI o la nube                   | Bloqueo de IPs de cloud          | Descargar solo desde IP residencial     |
 
 ## Fuente de verdad
-docs/fuentes-de-datos.md, docs/modelo-de-eventos.md (desde H1 tarea 5),
-docs/runbook.md y services/core/src/apexpulse/sources/.
+docs/fuentes-de-datos.md, docs/modelo-de-eventos.md, docs/runbook.md y
+services/core/src/apexpulse/sources/.
