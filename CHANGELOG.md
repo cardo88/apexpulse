@@ -20,3 +20,6 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - `scripts/check_skills.py`: formato Agent Skills y correspondencia con la tabla de skills de `AGENTS.md`.
 - `docs/ai/mapa-codigo.md`, generado por `make mapa`, y `docs/setup-local.md` con requisitos y verificaciones.
 - Hook Stop de Claude Code que corre `make -s check-docs WARN=1` y hook pre-commit que corre `make check-private`.
+
+### Fixed
+- `make check-private` ya no falla en un clon sin `.private/` (por ejemplo, en CI).
