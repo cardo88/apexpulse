@@ -7,6 +7,7 @@ vuelta 60 con paradas reales y pasadas por el pit lane, segundo SC en la 66, ban
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,7 @@ import pytest
 from apexpulse.cli import main
 from apexpulse.model import (
     NEUTRALIZED,
+    DriverInfo,
     IntervalUpdated,
     PitLane,
     RaceControlMessage,
@@ -128,6 +130,75 @@ def test_paradas_bajo_safety_car(
     assert len(pasadas) == 18
     assert all(e.lane_s is not None and e.lane_s < 35 for e in pasadas)
     assert TrackStatus.SC in NEUTRALIZED and TrackStatus.SC_ENDING in NEUTRALIZED
+
+
+def test_pilotos_de_monaco(tmp_path: Path, openf1_monaco: FakeOpenF1, clock: FakeClock) -> None:
+    resultado = _bajar_y_normalizar(openf1_monaco, clock, tmp_path)
+    assert not any(w.startswith("drivers") for w in resultado.warnings)
+    pilotos = {e.driver: e for e in resultado.events if isinstance(e, DriverInfo)}
+    assert len(pilotos) == 22
+    assert all(e.t == resultado.meta.start for e in pilotos.values())
+    assert pilotos[44] == DriverInfo(
+        t=resultado.meta.start, driver=44, acronym="HAM", name="Lewis Hamilton", team="Ferrari"
+    )
+    assert pilotos[31].acronym == "OCO"  # en Mónaco corre OCO; en São Paulo, CAM (51)
+
+    # Las paradas reales bajo el SC de la vuelta 60, con su código de 3 letras.
+    estados = sorted(
+        (e for e in resultado.events if isinstance(e, TrackStatusChanged)), key=sort_key
+    )
+    inicio_sc, fin_sc = estados[0].t, estados[2].t
+    paradas = sorted(
+        (
+            e
+            for e in resultado.events
+            if isinstance(e, PitLane) and e.stationary_s is not None and inicio_sc <= e.t < fin_sc
+        ),
+        key=sort_key,
+    )
+    assert [pilotos[e.driver].acronym for e in paradas] == ["HAM", "ALO", "RUS", "PER", "BOR"]
+
+
+def test_drivers_invalidos_y_repetidos_avisan(
+    tmp_path: Path, openf1_monaco: FakeOpenF1, clock: FakeClock
+) -> None:
+    def editar(datos: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        sin_sigla = {**datos[0], "name_acronym": None}
+        sin_equipo = {**datos[1], "team_name": None}
+        repetido = {**datos[2], "team_name": "Otro equipo"}
+        return [sin_sigla, sin_equipo, *datos[2:], repetido]
+
+    openf1_monaco.edits["drivers"] = editar
+    resultado = _bajar_y_normalizar(openf1_monaco, clock, tmp_path)
+    pilotos = {e.driver: e for e in resultado.events if isinstance(e, DriverInfo)}
+    assert 1 not in pilotos and len(pilotos) == 21
+    assert pilotos[3].team is None
+    assert pilotos[5].team == "Otro equipo"
+    avisos = [w for w in resultado.warnings if w.startswith("drivers")]
+    assert avisos == [
+        "drivers: name_acronym ausente o no es de 3 letras, omitidos: 1 "
+        "(por ejemplo piloto 1 None)",
+        "drivers: número repetido con datos distintos, queda el último: 1 "
+        "(por ejemplo piloto 5 BOR y BOR)",
+    ]
+
+
+def test_crudo_sin_drivers_normaliza_con_aviso(
+    tmp_path: Path, openf1_monaco: FakeOpenF1, clock: FakeClock
+) -> None:
+    adapter = _adapter(openf1_monaco, clock)
+    report = adapter.fetch(MONACO, tmp_path)
+    manifiesto = report.dest / "manifest.json"
+    datos = json.loads(manifiesto.read_text(encoding="utf-8"))
+    del datos["endpoints"]["drivers"]
+    manifiesto.write_text(json.dumps(datos), encoding="utf-8")
+
+    resultado = adapter.normalize(MONACO, tmp_path)
+    assert not any(isinstance(e, DriverInfo) for e in resultado.events)
+    assert (
+        "drivers: el crudo no tiene drivers, sin pilotos: 1 "
+        "(por ejemplo correr make fetch SESSION=2026-monaco-r)"
+    ) in resultado.warnings
 
 
 def test_stints_e_intervalos(tmp_path: Path, openf1_monaco: FakeOpenF1, clock: FakeClock) -> None:

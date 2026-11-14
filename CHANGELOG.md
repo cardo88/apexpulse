@@ -32,9 +32,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - `make normalize SESSION=<id>` (`python -m apexpulse normalize`), que escribe `data/canonical/<sesion>.parquet`.
 - Fixture `2026-monaco-r` con el tramo del SC con paradas en boxes y la bandera roja, y tests de contrato de `race_control` y de la normalización.
 - `docs/modelo-de-eventos.md` y tabla de mapeo de OpenF1 a eventos canónicos en `docs/fuentes-de-datos.md`.
+- Endpoint `drivers` de OpenF1 en el adaptador, con su esquema, caché y test de contrato, y fixtures `drivers.json` de `2026-monaco-r` y `2026-sao-paulo-r`.
+- Evento canónico `driver` (`DriverInfo`): número del auto, código de 3 letras (`acronym`), nombre y equipo, con `t` igual al inicio de la sesión. Columnas `acronym`, `name` y `team` en el Parquet.
 
 ### Changed
 - Dependencias de `services/core`: se suman `pydantic` y `pyarrow`.
+- Modelo canónico: esquema 1.1 (versión menor). Los archivos 1.0 se siguen leyendo; renormalizar para tener los eventos `driver`.
+- `make fetch` con un manifiesto al que le faltan endpoints baja solo esos, en lugar de descargar toda la sesión otra vez.
+- El normalizador de OpenF1 avisa y sigue si el crudo no tiene `drivers`.
 
 ### Fixed
 - `make check-private` ya no falla en un clon sin `.private/` (por ejemplo, en CI).

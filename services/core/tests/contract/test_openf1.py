@@ -226,3 +226,68 @@ def test_sesion_nueva_en_el_calendario_refresca_sessions(
     report = _adapter(openf1, clock).fetch(SESION, tmp_path)
     assert openf1.paths()[0] == "sessions"
     assert report.source_session_key == 11412
+
+
+# drivers -----------------------------------------------------------------------------------
+
+
+def test_drivers_se_descarga_con_la_sesion(
+    tmp_path: Path, openf1: FakeOpenF1, clock: FakeClock
+) -> None:
+    report = _adapter(openf1, clock).fetch(SESION, tmp_path)
+    assert openf1.paths()[-1] == "drivers"
+    assert report.rows["drivers"] == 3
+    guardado = list(read_jsonl_zst(report.dest / "drivers.jsonl.zst"))
+    assert [(r["driver_number"], r["name_acronym"]) for r in guardado] == [
+        (1, "NOR"),
+        (3, "VER"),
+        (5, "BOR"),
+    ]
+
+
+def test_drivers_sin_name_acronym_falla(
+    tmp_path: Path, openf1: FakeOpenF1, clock: FakeClock
+) -> None:
+    def quitar(datos: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [{k: v for k, v in r.items() if k != "name_acronym"} for r in datos]
+
+    openf1.edits["drivers"] = quitar
+    with pytest.raises(SchemaError, match="drivers: el registro 0 no tiene name_acronym"):
+        _adapter(openf1, clock).fetch(SESION, tmp_path)
+
+
+def test_manifiesto_sin_drivers_baja_solo_lo_que_falta(
+    tmp_path: Path, openf1: FakeOpenF1, clock: FakeClock
+) -> None:
+    # Crudo bajado antes de sumar drivers: el manifiesto no lo lista y el archivo no existe.
+    _adapter(openf1, clock).fetch(SESION, tmp_path)
+    destino = tmp_path / "2026" / "2026-sao-paulo-r" / "openf1"
+    manifiesto = destino / "manifest.json"
+    viejo = json.loads(manifiesto.read_text(encoding="utf-8"))
+    del viejo["endpoints"]["drivers"]
+    manifiesto.write_text(json.dumps(viejo), encoding="utf-8")
+    (destino / "drivers.jsonl.zst").unlink()
+
+    openf1.requests.clear()
+    report = _adapter(openf1, clock).fetch(SESION, tmp_path)
+    assert openf1.paths() == ["drivers"]
+    assert report.requests == 1 and not report.from_cache
+    assert report.rows["drivers"] == 3 and report.rows["laps"] == 4
+    nuevo = json.loads(manifiesto.read_text(encoding="utf-8"))
+    assert sorted(nuevo["endpoints"]) == sorted(ENDPOINTS)
+    assert nuevo["openf1_session"] == viejo["openf1_session"]
+
+    openf1.requests.clear()
+    assert _adapter(openf1, clock).fetch(SESION, tmp_path).from_cache
+    assert openf1.requests == []
+
+
+def test_archivo_faltante_se_vuelve_a_bajar(
+    tmp_path: Path, openf1: FakeOpenF1, clock: FakeClock
+) -> None:
+    _adapter(openf1, clock).fetch(SESION, tmp_path)
+    (tmp_path / "2026" / "2026-sao-paulo-r" / "openf1" / "pit.jsonl.zst").unlink()
+    openf1.requests.clear()
+    report = _adapter(openf1, clock).fetch(SESION, tmp_path)
+    assert openf1.paths() == ["pit"]
+    assert report.rows["pit"] == 3

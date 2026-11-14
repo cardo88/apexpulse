@@ -25,10 +25,10 @@ curl -s "https://api.openf1.org/v1/sessions?year=2026&session_name=Race" | head 
 
 ### Adaptador (`sources/openf1.py`)
 
-`make fetch SESSION=2026-sao-paulo-r` baja la sesión en 8 requests y la deja en caché:
+`make fetch SESSION=2026-sao-paulo-r` baja la sesión en 9 requests y la deja en caché:
 
 ```text
-2026-sao-paulo-r (openf1, session_key 11412): 8 requests
+2026-sao-paulo-r (openf1, session_key 11412): 9 requests
   laps             1437 registros
   stints             80 registros
   pit                58 registros
@@ -36,14 +36,15 @@ curl -s "https://api.openf1.org/v1/sessions?year=2026&session_name=Race" | head 
   position          576 registros
   race_control      212 registros
   weather           160 registros
+  drivers            22 registros
 Crudo en .../data/raw/2026/2026-sao-paulo-r/openf1
 ```
 
-1. Si existe `data/raw/<año>/<sesion>/openf1/manifest.json`, no hace ningún request. `FORCE=1` ignora la caché.
+1. Si existe `data/raw/<año>/<sesion>/openf1/manifest.json` con todos los endpoints y sus archivos, no hace ningún request. Si faltan endpoints, por ejemplo en un crudo bajado antes de sumar `drivers`, pide solo esos, reutiliza el registro de la sesión del manifiesto y lo reescribe: `make fetch SESSION=2026-monaco-r` sobre la caché anterior a `drivers` hizo `1 requests`. `FORCE=1` ignora la caché y baja todo.
 2. Resuelve el `session_key` con `sessions?year=<año>`, filtrando por `circuit_short_name` (columna `openf1` de `services/core/src/apexpulse/config/circuits.toml`) y `session_name`. La lista del año se cachea en `data/raw/<año>/_openf1/sessions.jsonl.zst`; si la sesión no está en caché, se vuelve a pedir (el calendario del año en curso se completa con el tiempo).
 3. Rechaza la sesión si `is_cancelled` es verdadero o si todavía no pasaron 30 minutos desde `date_end`.
 4. Pide cada endpoint con `?session_key=<n>`, valida el esquema y guarda el crudo tal como llegó en `<endpoint>.jsonl.zst`. Un 404 con `No results found` cuenta como lista vacía y genera un aviso.
-5. Escribe `manifest.json` al final, con el registro de la sesión, los conteos y los avisos. Sin manifiesto, la descarga se considera incompleta y se rehace.
+5. Escribe `manifest.json` al final, con el registro de la sesión, los conteos y los avisos. Sin manifiesto, la descarga se considera incompleta y se rehace entera.
 
 Tipos de sesión del identificador y su `session_name` en OpenF1:
 
@@ -77,6 +78,7 @@ Verificada contra `2026-sao-paulo-r` (session_key 11412) y `2026-monaco-r` (sess
 | position | session_key, driver_number, date, position | meeting_key |
 | race_control | session_key, date, category, message | meeting_key, driver_number, lap_number, flag, scope, sector, qualifying_phase |
 | weather | session_key, date, air_temperature, track_temperature, rainfall | meeting_key, humidity, pressure, wind_direction, wind_speed |
+| drivers | session_key, driver_number, name_acronym | meeting_key, full_name, first_name, last_name, broadcast_name, team_name, team_colour, headshot_url, country_code |
 
 Un campo obligatorio puede venir en `null` (por ejemplo, `lap_duration` de la vuelta 1); lo que falla es que la clave no exista.
 
@@ -122,6 +124,7 @@ Un campo obligatorio puede venir en `null` (por ejemplo, `lap_duration` de la vu
 | race_control | `race_control` | `t` = `date`; `category`, `message`, `flag`, `scope`, `sector`; `driver` = `driver_number`; `lap` = `lap_number` |
 | race_control | `track_status` | Derivado con `sources/trackstatus.py`; ver [Estado de pista](modelo-de-eventos.md#estado-de-pista) |
 | weather | `weather` | `t` = `date`; `air_c`, `track_c` = `air_temperature`, `track_temperature`; `rain` = `rainfall` > 0; `humidity_pct`, `wind_ms`, `wind_deg`, `pressure_hpa` = `humidity`, `wind_speed`, `wind_direction`, `pressure` |
+| drivers | `driver` | `t` = `date_start` de la sesión (el endpoint no trae fecha); `acronym` = `name_acronym`; `name` = `first_name` + `last_name` (`"Lewis Hamilton"`), o `full_name` si falta alguno; `team` = `team_name`. Sin `name_acronym` de 3 letras o sin nombre: se omite con aviso. Número repetido con datos distintos: queda el último, con aviso. `team_colour`, `headshot_url`, `broadcast_name` y `country_code` no se usan |
 | sessions | Cabecera `SessionMeta` | `source_session_key` = `session_key`; `start`, `end` = `date_start`, `date_end` (calendario, no hora real) |
 
 Particularidades de OpenF1 verificadas con 2026-monaco-r (session_key 11299):
@@ -130,6 +133,7 @@ Particularidades de OpenF1 verificadas con 2026-monaco-r (session_key 11299):
 - Esas pasadas también abren un stint nuevo con el mismo compuesto y `tyre_age_at_start` corrido en una vuelta (por ejemplo, ALO: stint 3 SOFT con 0 vueltas desde la 58 y stint 4 SOFT con 1 desde la 59). Un juego nuevo se reconoce por `tyre_age` 0 o por el cambio de compuesto.
 - La bandera roja llega como `category=Other`, `message="RED FLAG - RACE SUSPENDED"`, sin `flag=RED`, junto con `SessionStatus SESSION ABORTED`.
 - Durante la bandera roja, los autos esperan en el pit lane: `lane_duration` supera los 2000 s.
+- `drivers` devuelve un registro por auto inscripto (22 en 2026), sin fecha. `full_name` trae el apellido en mayúsculas (`"Lewis HAMILTON"`); por eso el nombre se arma con `first_name` y `last_name`. La grilla cambia entre carreras: en Mónaco corre OCO (31) y en São Paulo, CAM (51).
 
 ## Referencias
 

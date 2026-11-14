@@ -20,7 +20,8 @@ Adaptadores por fuente, modelo canónico v1, reloj de replay, motor de lecturas,
 
 ## Modelo canónico v1
 
-- Ocho eventos inmutables con `t` en UTC: lap, stint, pit, position, interval, race_control, track_status y weather (model/events.py, versión `SCHEMA_VERSION` 1.0).
+- Nueve eventos inmutables con `t` en UTC: driver, lap, stint, pit, position, interval, race_control, track_status y weather (model/events.py, versión `SCHEMA_VERSION` 1.1).
+- `driver` lleva el código de 3 letras (`acronym`), el nombre y el equipo de cada auto, con `t` = inicio de la sesión. Las lecturas toman el código de ahí, no de una tabla propia.
 - Un Parquet ancho por sesión en data/canonical/<sesion>.parquet, orden total con `sort_key` y salida determinística (`make normalize`).
 - `track_status` se deriva de race_control (sources/trackstatus.py). `NEUTRALIZED` = SC, SC_ENDING, VSC y VSC_ENDING; el rojo queda aparte.
 - `pit.stationary_s` null es una pasada por el pit lane, no una parada.

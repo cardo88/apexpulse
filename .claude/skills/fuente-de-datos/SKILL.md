@@ -19,7 +19,8 @@ class SourceAdapter(Protocol):          # sources/base.py
 ~~~
 - `dest` es la raíz data/raw. El crudo queda en
   `data/raw/<año>/<sesion>/<fuente>/<endpoint>.jsonl.zst` más `manifest.json`,
-  que se escribe al final y marca la descarga como completa.
+  que se escribe al final y marca la descarga como completa. Si al manifiesto
+  le faltan endpoints (se sumó uno nuevo), `fetch` baja solo esos.
 - `FetchReport` lleva registros por endpoint, requests hechos, si vino de la
   caché y los avisos de validación.
 - `normalize` lee solo el crudo (sin red) y devuelve `Normalized`: cabecera

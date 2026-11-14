@@ -1,7 +1,9 @@
 """Adaptador de OpenF1: descarga histórica con caché local, límite de tasa y reintentos.
 
 Flujo de `fetch` para `2026-sao-paulo-r`:
-1. Si existe `data/raw/2026/2026-sao-paulo-r/openf1/manifest.json`, no hace requests.
+1. Si existe `data/raw/2026/2026-sao-paulo-r/openf1/manifest.json` con todos los endpoints, no
+   hace requests. Si al manifiesto le faltan endpoints (crudo bajado antes de sumarlos), baja
+   solo esos y lo reescribe.
 2. Resuelve el session_key con `sessions?year=2026` (cacheado en `data/raw/2026/_openf1/`).
 3. Pide cada endpoint con `?session_key=<n>`, valida el esquema y guarda el crudo en JSONL zstd.
 4. Escribe el manifiesto al final: su presencia marca la descarga como completa.
@@ -92,6 +94,11 @@ SCHEMAS: dict[str, EndpointSchema] = {
         "session_key date air_temperature track_temperature rainfall",
         "meeting_key humidity pressure wind_direction wind_speed",
     ),
+    "drivers": _schema(
+        "session_key driver_number name_acronym",
+        "meeting_key full_name first_name last_name broadcast_name team_name team_colour "
+        "headshot_url country_code",
+    ),
 }
 
 # Endpoints por sesión que usa el MVP, en el orden en que se descargan.
@@ -103,6 +110,7 @@ ENDPOINTS: tuple[str, ...] = (
     "position",
     "race_control",
     "weather",
+    "drivers",
 )
 
 MANIFEST = "manifest.json"
@@ -155,23 +163,33 @@ class OpenF1Adapter:
         report = FetchReport(source=SOURCE, session=session, dest=destino)
         manifiesto = destino / MANIFEST
 
-        if manifiesto.exists() and not force and self._cache_complete(destino, report):
-            return report
-        manifiesto.unlink(missing_ok=True)
-
-        info = self._resolve(session, dest, report, force=force)
+        cache = None if force else self._read_cache(destino)
+        if cache is not None:
+            info, archivos, report.warnings = cache
+        else:
+            manifiesto.unlink(missing_ok=True)
+            info = self._resolve(session, dest, report, force=force)
+            archivos = {}
         session_key = int(info["session_key"])
         report.source_session_key = session_key
 
-        archivos: dict[str, dict[str, Any]] = {}
-        for endpoint in ENDPOINTS:
+        faltantes = [e for e in ENDPOINTS if e not in archivos]
+        if not faltantes:
+            report.rows = {e: int(archivos[e]["rows"]) for e in ENDPOINTS}
+            report.from_cache = True
+            return report
+
+        for endpoint in faltantes:
             registros = self._get(endpoint, {"session_key": session_key}, report)
             self._check_schema(endpoint, registros, report, session_key=session_key)
             if not registros:
                 report.warnings.append(f"{endpoint}: OpenF1 no devolvió registros")
             archivo = f"{endpoint}.jsonl.zst"
-            report.rows[endpoint] = write_jsonl_zst(destino / archivo, registros)
-            archivos[endpoint] = {"file": archivo, "rows": report.rows[endpoint]}
+            archivos[endpoint] = {
+                "file": archivo,
+                "rows": write_jsonl_zst(destino / archivo, registros),
+            }
+        report.rows = {e: int(archivos[e]["rows"]) for e in ENDPOINTS}
 
         write_json(
             manifiesto,
@@ -181,7 +199,7 @@ class OpenF1Adapter:
                 "base_url": BASE_URL,
                 "fetched_at": self._now().isoformat(timespec="seconds"),
                 "openf1_session": info,
-                "endpoints": archivos,
+                "endpoints": {e: archivos[e] for e in ENDPOINTS},
                 "warnings": report.warnings,
             },
         )
@@ -198,21 +216,31 @@ class OpenF1Adapter:
 
     # Caché -------------------------------------------------------------------------------
 
-    def _cache_complete(self, destino: Path, report: FetchReport) -> bool:
+    @staticmethod
+    def _read_cache(
+        destino: Path,
+    ) -> tuple[dict[str, Any], dict[str, dict[str, Any]], list[str]] | None:
+        """Lee el manifiesto: sesión, endpoints ya bajados (con archivo presente) y avisos.
+
+        Devuelve None si no hay manifiesto o no se puede leer; en ese caso se baja todo.
+        """
         try:
             datos = json.loads((destino / MANIFEST).read_text(encoding="utf-8"))
-            endpoints = datos["endpoints"]
-            if any(e not in endpoints for e in ENDPOINTS):
-                return False
-            if any(not (destino / endpoints[e]["file"]).exists() for e in ENDPOINTS):
-                return False
-            report.rows = {e: int(endpoints[e]["rows"]) for e in ENDPOINTS}
-            report.source_session_key = int(datos["openf1_session"]["session_key"])
-            report.warnings = [str(w) for w in datos.get("warnings", [])]
+            info: dict[str, Any] = datos["openf1_session"]
+            int(info["session_key"])
+            archivos = {
+                e: {
+                    "file": str(datos["endpoints"][e]["file"]),
+                    "rows": int(datos["endpoints"][e]["rows"]),
+                }
+                for e in ENDPOINTS
+                if e in datos["endpoints"]
+                and (destino / str(datos["endpoints"][e]["file"])).exists()
+            }
+            avisos = [str(w) for w in datos.get("warnings", [])]
         except (OSError, ValueError, KeyError, TypeError):
-            return False
-        report.from_cache = True
-        return True
+            return None
+        return info, archivos, avisos
 
     # Resolución de la sesión -----------------------------------------------------------------
 

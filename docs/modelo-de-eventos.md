@@ -1,6 +1,6 @@
 # Modelo de eventos canónico
 
-Contrato entre los adaptadores de fuente y el resto del sistema (ADR 0002). El replay, el motor de lecturas y la API solo conocen estos eventos; el formato de OpenF1 o del archivo estático queda dentro de `sources/`. Versión vigente: **1.0**.
+Contrato entre los adaptadores de fuente y el resto del sistema (ADR 0002). El replay, el motor de lecturas y la API solo conocen estos eventos; el formato de OpenF1 o del archivo estático queda dentro de `sources/`. Versión vigente: **1.1** (ver [Historial](#historial)).
 
 Código: `services/core/src/apexpulse/model/` (`events.py` con los tipos en Pydantic v2, `parquet.py` con la persistencia).
 
@@ -14,7 +14,8 @@ make normalize SESSION=2026-monaco-r   # eventos en data/canonical/2026-monaco-r
 Salida real:
 
 ```text
-2026-monaco-r (openf1 a canónico v1.0): 32331 eventos
+2026-monaco-r (openf1 a canónico v1.1): 32353 eventos
+  driver             22
   interval        29916
   lap              1445
   pit                86
@@ -52,6 +53,7 @@ Campos comunes: `t` (instante UTC) y `kind` (discriminador). `driver` es el núm
 
 | kind | Clase | Cuándo ocurre | Campos |
 |------|-------|---------------|--------|
+| `driver` | `DriverInfo` | Inicio de la sesión, uno por auto inscripto | `driver`, `acronym`, `name`, `team?` |
 | `lap` | `LapCompleted` | El piloto cruza la línea al terminar la vuelta | `driver`, `lap`, `lap_time_s?`, `s1_s?`, `s2_s?`, `s3_s?`, `pit_out` |
 | `stint` | `StintStarted` | Empieza la vuelta `lap`, primera del stint | `driver`, `lap`, `stint`, `compound`, `tyre_age` |
 | `pit` | `PitLane` | Paso por el pit lane | `driver`, `lap`, `lane_s?`, `stationary_s?` |
@@ -63,6 +65,7 @@ Campos comunes: `t` (instante UTC) y `kind` (discriminador). `driver` es el núm
 
 Detalle de los campos que no son obvios:
 
+- `driver`: `t` es el inicio de la sesión según el calendario (`SessionMeta.start`), porque la grilla se conoce antes de la largada y la fuente no le pone fecha. `acronym` es el código de 3 letras en mayúsculas (`HAM`; cualquier otro formato es un error de validación), `name` es nombre y apellido (`Lewis Hamilton`) y `team` el nombre del equipo según la fuente, null si no lo informa. Para pasar de número a código, recorrer los eventos `driver` del flujo. Un archivo 1.0 no tiene estos eventos.
 - `lap.lap_time_s` null: la fuente no tiene el tiempo (por ejemplo, la vuelta en que se muestra la bandera roja). El evento se emite igual al empezar la vuelta siguiente; si tampoco hay vuelta siguiente, se omite con un aviso.
 - `stint.compound`: `SOFT`, `MEDIUM`, `HARD`, `INTERMEDIATE`, `WET` o `UNKNOWN`. `tyre_age` son las vueltas que tenía el juego al empezar el stint: 0 es un juego nuevo.
 - `pit.stationary_s` null: no hay detención registrada. Bajo SC la dirección de carrera puede mandar a todos por el pit lane (`ALL CARS THROUGH THE PIT LANE`) y esas pasadas también son eventos `pit`. `lane_s` puede ser enorme durante una bandera roja: los autos esperan en el pit lane.
@@ -73,13 +76,14 @@ Detalle de los campos que no son obvios:
 Ejemplos reales de 2026-monaco-r, tal como los devuelve `read_events` (con `model_dump(mode="json")`):
 
 ```json
+{"t": "2026-06-07T13:00:00Z", "kind": "driver", "driver": 44, "acronym": "HAM", "name": "Lewis Hamilton", "team": "Ferrari"}
 {"t": "2026-06-07T14:20:02Z", "kind": "track_status", "status": "SC", "lap": 60, "cause": "SAFETY CAR DEPLOYED"}
 {"t": "2026-06-07T14:24:06.829000Z", "kind": "pit", "driver": 5, "lap": 59, "lane_s": 24.824, "stationary_s": 2.5}
 {"t": "2026-06-07T14:22:51.100000Z", "kind": "pit", "driver": 41, "lap": 59, "lane_s": 20.2, "stationary_s": null}
 {"t": "2026-06-07T13:50:13.988000Z", "kind": "interval", "driver": 41, "gap_s": null, "laps_down": 1, "interval_s": 0.495, "interval_laps": null}
 ```
 
-El primero abre el SC de la vuelta 60; el segundo es una parada real bajo ese SC (2,5 s detenido); el tercero, una pasada por el pit lane sin detención.
+El primero presenta al auto 44 al inicio de la sesión; el segundo abre el SC de la vuelta 60; el tercero es una parada real bajo ese SC (2,5 s detenido); el cuarto, una pasada por el pit lane sin detención.
 
 ## Estado de pista
 
@@ -110,7 +114,7 @@ La derivación vive en `sources/trackstatus.py` y la puede reutilizar cualquier 
 
 ## Orden
 
-El flujo de una sesión se ordena por `sort_key`: instante, tipo, piloto, vuelta y, como último desempate, el contenido del evento. Para un mismo instante, el orden de tipos es `race_control`, `track_status`, `lap`, `pit`, `stint`, `position`, `interval`, `weather`: primero lo que cambia el contexto. Ejemplo: a las 14:20:02 de Mónaco llegan `OVERTAKE DISABLED` y `SAFETY CAR DEPLOYED` con el mismo instante; el contenido decide el orden, sin depender del orden en que los entrega la fuente.
+El flujo de una sesión se ordena por `sort_key`: instante, tipo, piloto, vuelta y, como último desempate, el contenido del evento. Para un mismo instante, el orden de tipos es `driver`, `race_control`, `track_status`, `lap`, `pit`, `stint`, `position`, `interval`, `weather`: primero lo que cambia el contexto. Ejemplo: a las 14:20:02 de Mónaco llegan `OVERTAKE DISABLED` y `SAFETY CAR DEPLOYED` con el mismo instante; el contenido decide el orden, sin depender del orden en que los entrega la fuente. Los eventos `driver` comparten instante y salen ordenados por número de auto.
 
 ## Archivo Parquet
 
@@ -120,7 +124,7 @@ Un archivo por sesión en `data/canonical/<sesion>.parquet`, comprimido con zstd
 |----------|-----------|
 | `seq` | int32, posición en el flujo desde 0 |
 | `t` | timestamp(us, UTC) |
-| `kind`, `compound`, `category`, `message`, `flag`, `scope`, `status`, `cause` | string |
+| `kind`, `acronym`, `name`, `team`, `compound`, `category`, `message`, `flag`, `scope`, `status`, `cause` | string |
 | `driver`, `lap`, `stint`, `tyre_age`, `position`, `laps_down`, `interval_laps`, `sector`, `wind_deg` | int16 |
 | `lap_time_s`, `s1_s`, `s2_s`, `s3_s`, `lane_s`, `stationary_s`, `gap_s`, `interval_s`, `air_c`, `track_c`, `humidity_pct`, `wind_ms`, `pressure_hpa` | float64 |
 | `pit_out`, `rain` | bool |
@@ -128,7 +132,7 @@ Un archivo por sesión en `data/canonical/<sesion>.parquet`, comprimido con zstd
 La cabecera `SessionMeta` va en los metadatos del archivo, clave `apexpulse`, como JSON:
 
 ```json
-{"schema_version":"1.0","session":"2026-monaco-r","source":"openf1","source_session_key":11299,"circuit":"Mónaco","start":"2026-06-07T13:00:00Z","end":"2026-06-07T15:00:00Z"}
+{"schema_version":"1.1","session":"2026-monaco-r","source":"openf1","source_session_key":11299,"circuit":"Mónaco","start":"2026-06-07T13:00:00Z","end":"2026-06-07T15:00:00Z"}
 ```
 
 `start` y `end` son los del calendario de la fuente, no los reales: la carrera de Mónaco 2026 terminó a las 15:26:43 por la bandera roja.
@@ -137,19 +141,21 @@ Lectura desde Python:
 
 ```python
 from pathlib import Path
-from apexpulse.model import NEUTRALIZED, PitLane, TrackStatusChanged, read_events
+from apexpulse.model import NEUTRALIZED, DriverInfo, PitLane, TrackStatusChanged, read_events
 
-estado = None
+codigos, estado = {}, None
 for e in read_events(Path("data/canonical/2026-monaco-r.parquet")):
-    if isinstance(e, TrackStatusChanged):
+    if isinstance(e, DriverInfo):
+        codigos[e.driver] = e.acronym
+    elif isinstance(e, TrackStatusChanged):
         estado = e.status
     elif isinstance(e, PitLane) and e.stationary_s is not None and estado in NEUTRALIZED:
-        print(e.t.time(), estado.value, e.driver, e.lap, e.stationary_s)
-# 14:21:26.073000 SC 44 60 8.6
-# 14:21:34.338000 SC 14 58 4.3
-# 14:22:50.098000 SC 63 60 5.5
-# 14:23:51.502000 SC 11 59 3.9
-# 14:24:06.829000 SC 5 59 2.5
+        print(e.t.time(), estado.value, codigos[e.driver], e.lap, e.stationary_s)
+# 14:21:26.073000 SC HAM 60 8.6
+# 14:21:34.338000 SC ALO 58 4.3
+# 14:22:50.098000 SC RUS 60 5.5
+# 14:23:51.502000 SC PER 59 3.9
+# 14:24:06.829000 SC BOR 59 2.5
 ```
 
 `read_events(path, kinds=["track_status"])` filtra por tipo; `read_meta(path)` lee solo la cabecera.
@@ -160,7 +166,7 @@ for e in read_events(Path("data/canonical/2026-monaco-r.parquet")):
 
 | Cambio | Versión | Ejemplo |
 |--------|---------|---------|
-| Campo opcional nuevo o tipo de evento nuevo | MENOR (1.0 a 1.1) | Agregar `team` opcional a `position` |
+| Campo opcional nuevo o tipo de evento nuevo | MENOR (1.1 a 1.2) | Agregar `country` opcional a `driver` |
 | Campo renombrado, eliminado, que cambia de tipo o de significado, o que pasa a obligatorio | MAYOR (1.x a 2.0) | Pasar `gap_s` a milisegundos |
 
 Al cambiar la versión:
@@ -169,7 +175,14 @@ Al cambiar la versión:
 2. Actualizar este documento y la tabla de mapeo de [fuentes-de-datos.md](fuentes-de-datos.md#mapeo-a-eventos-canónicos).
 3. Renormalizar desde el crudo (`make normalize`); no hay migraciones de archivos (ADR 0005).
 4. Si cambia la salida del motor, regenerar los golden tests con el motivo en el commit (desde H1 tarea 8).
-5. Registrar el cambio en el CHANGELOG.
+5. Registrar el cambio en el CHANGELOG y en el [Historial](#historial).
+
+### Historial
+
+| Versión | Cambio |
+|---------|--------|
+| 1.1 | Evento `driver` (`DriverInfo`): número, código de 3 letras, nombre y equipo. Columnas `acronym`, `name` y `team` en el Parquet. Los archivos 1.0 se siguen leyendo; no tienen eventos `driver` |
+| 1.0 | Versión inicial: `lap`, `stint`, `pit`, `position`, `interval`, `race_control`, `track_status` y `weather` |
 
 ## Agregar una fuente
 

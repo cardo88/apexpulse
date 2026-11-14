@@ -15,7 +15,7 @@ from pydantic import AfterValidator, BaseModel, ConfigDict, Field, TypeAdapter
 
 # MAYOR.MENOR. MENOR suma campos opcionales o tipos nuevos; MAYOR rompe compatibilidad y obliga
 # a renormalizar desde el crudo (ADR 0005).
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 
 
 def _utc(valor: datetime) -> datetime:
@@ -63,6 +63,16 @@ class _Evento(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
 
     t: Instante
+
+
+class DriverInfo(_Evento):
+    """Piloto inscripto en la sesión. `t` es el inicio de la sesión: la grilla se conoce antes."""
+
+    kind: Literal["driver"] = "driver"
+    driver: Piloto  # número del auto
+    acronym: Annotated[str, Field(pattern=r"^[A-Z]{3}$")]  # código de 3 letras: "HAM"
+    name: Annotated[str, Field(min_length=1)]  # nombre y apellido: "Lewis Hamilton"
+    team: str | None = None  # None: la fuente no informa el equipo
 
 
 class LapCompleted(_Evento):
@@ -158,7 +168,8 @@ class WeatherSample(_Evento):
 
 
 Event = Annotated[
-    LapCompleted
+    DriverInfo
+    | LapCompleted
     | StintStarted
     | PitLane
     | PositionChanged
@@ -171,16 +182,18 @@ Event = Annotated[
 
 EVENT_ADAPTER: TypeAdapter[Event] = TypeAdapter(Event)
 
-# Orden de desempate para eventos con el mismo instante: primero lo que cambia el contexto.
+# Orden de desempate para eventos con el mismo instante: primero la grilla y después lo que
+# cambia el contexto.
 KIND_ORDER: dict[str, int] = {
-    "race_control": 0,
-    "track_status": 1,
-    "lap": 2,
-    "pit": 3,
-    "stint": 4,
-    "position": 5,
-    "interval": 6,
-    "weather": 7,
+    "driver": 0,
+    "race_control": 1,
+    "track_status": 2,
+    "lap": 3,
+    "pit": 4,
+    "stint": 5,
+    "position": 6,
+    "interval": 7,
+    "weather": 8,
 }
 
 
