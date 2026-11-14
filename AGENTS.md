@@ -8,7 +8,7 @@ Ver DISCLAIMER.md.
 1. Si existe .private/estado.md, leerlo: hito actual y próximo paso.
    Si no existe, el estado público está en docs/roadmap.md.
 2. Para cambios que cruzan componentes, leer docs/ai/contexto.md.
-3. Para ubicar código, usar docs/ai/mapa-codigo.md (desde H1 tarea 3)
+3. Para ubicar código, usar docs/ai/mapa-codigo.md (generado por make mapa)
    en lugar de recorrer el árbol.
 
 ## Mapa
@@ -27,11 +27,12 @@ Todo se ejecuta por make. La columna "Desde" indica cuándo existe cada target.
 
 | Comando                            | Qué hace                                       | Desde      |
 |------------------------------------|------------------------------------------------|------------|
-| make check                         | Todas las verificaciones                       | Disponible |
+| make setup                         | Instala dependencias (uv) y hooks de git       | Disponible |
+| make check                         | Todas las verificaciones (las de CI)           | Disponible |
+| make lint / typecheck / test       | ruff, mypy estricto y pytest                   | Disponible |
+| make check-docs / check-skills     | Docs y skills al día con el cambio             | Disponible |
 | make check-private                 | Falla si algo privado quedó versionado         | Disponible |
-| make setup                         | Instala dependencias y hooks                   | H1 t3      |
-| make check-docs / check-skills     | Docs y skills al día con el cambio             | H1 t3      |
-| make mapa                          | Regenera docs/ai/mapa-codigo.md                | H1 t3      |
+| make mapa                          | Regenera docs/ai/mapa-codigo.md                | Disponible |
 | make fetch SESSION=<id>            | Descarga y cachea una sesión                   | H1 t4      |
 | make normalize SESSION=<id>        | Genera eventos canónicos                       | H1 t5      |
 | make replay SESSION=<id> SPEED=<n> | Reproduce y muestra lecturas                   | H1 t6      |

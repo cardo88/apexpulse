@@ -8,7 +8,8 @@
   archivos por ruta explícita.
 - Usar plan mode para cambios en services/core/src/apexpulse/model/ (contrato
   del modelo canónico) y en infra/.
-- Desde H1 tarea 3 existe un hook Stop que corre "make -s check-docs WARN=1".
-  Si avisa, resolverlo antes de dar la tarea por terminada.
+- El hook Stop (.claude/settings.json, scripts/hook_stop.sh) corre
+  "make -s check-docs WARN=1" al terminar cada turno. Si avisa, resolverlo
+  antes de dar la tarea por terminada.
 - En tareas largas, dejar el progreso en .private/estado.md antes de que se
   compacte el contexto.

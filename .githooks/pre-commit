@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Hook pre-commit: impide commitear archivos de la capa privada (ADR 0008).
+# Se activa con make setup (git config core.hooksPath .githooks).
+set -euo pipefail
+exec make -s check-private
