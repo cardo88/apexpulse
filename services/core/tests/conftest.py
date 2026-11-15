@@ -9,6 +9,7 @@ import json
 import socket
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -16,11 +17,22 @@ import httpx
 import pytest
 
 from apexpulse.replay.clock import FakeClock as FakeClock  # re-export para los tests
+from apexpulse.session_id import SessionId
+from apexpulse.sources import Normalized, OpenF1Adapter
+from apexpulse.sources.openf1 import RATE_LIMITS
+from apexpulse.sources.ratelimit import RateLimiter
 
 RAIZ = Path(__file__).resolve().parents[3]
 FIXTURES = RAIZ / "fixtures" / "sessions"
+# Ventana con las paradas de la primera tanda de São Paulo (vueltas 12 a 20), para el replay.
 OPENF1_SAO_PAULO = FIXTURES / "2026-sao-paulo-r" / "openf1"
+# Pocos registros por endpoint, solo para los tests de contrato del adaptador.
+OPENF1_SAO_PAULO_CONTRATO = RAIZ / "fixtures" / "contract" / "2026-sao-paulo-r" / "openf1"
 OPENF1_MONACO = FIXTURES / "2026-monaco-r" / "openf1"
+# VSC en la vuelta 12, 18 y 34 de la carrera de Australia.
+OPENF1_AUSTRALIA = FIXTURES / "2026-australia-r" / "openf1"
+# Carrera completa de São Paulo solo con pit, stints, laps y race_control (sin intervalos).
+OPENF1_SAO_PAULO_PARADAS = RAIZ / "fixtures" / "contract" / "2026-sao-paulo-r-paradas" / "openf1"
 
 
 @pytest.fixture(autouse=True)
@@ -86,10 +98,24 @@ class FakeOpenF1:
 
 @pytest.fixture
 def openf1(clock: FakeClock) -> Iterator[FakeOpenF1]:
-    yield FakeOpenF1(OPENF1_SAO_PAULO, clock)
+    yield FakeOpenF1(OPENF1_SAO_PAULO_CONTRATO, clock)
 
 
 @pytest.fixture
 def openf1_monaco(clock: FakeClock) -> Iterator[FakeOpenF1]:
     """Tramo del SC y la bandera roja de 2026-monaco-r (session_key 11299)."""
     yield FakeOpenF1(OPENF1_MONACO, clock)
+
+
+AHORA = datetime(2026, 11, 14, 18, 0, tzinfo=UTC)
+
+
+def normalizar_fixture(directorio: Path, session: str, raw: Path) -> Normalized:
+    """Baja el fixture con el adaptador (OpenF1 simulado) y lo normaliza, como en producción."""
+    reloj = FakeClock()
+    fake = FakeOpenF1(directorio, reloj)
+    limiter = RateLimiter(RATE_LIMITS, clock=reloj, sleep=reloj.sleep)
+    adapter = OpenF1Adapter(fake.client(), limiter, sleep=reloj.sleep, now=lambda: AHORA)
+    sid = SessionId.parse(session)
+    adapter.fetch(sid, raw)
+    return adapter.normalize(sid, raw)

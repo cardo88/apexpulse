@@ -1,0 +1,33 @@
+# Umbrales del motor de lecturas (services/core/src/apexpulse/readings/).
+#
+# Cambiar un valor cambia la salida: pasa por golden tests (AGENTS.md). Cada sección lleva
+# `calibrated`: mientras sea false, el valor es un criterio inicial razonado, no un resultado
+# medido. Con las dos primeras carreras completas (São Paulo y Mónaco) hay 15 parejas
+# perseguidor y rival en que ambos paran con bandera verde; las paradas se concentran en una
+# tanda, así que la muestra no alcanza para calibrar. Se recalibra con 2026-australia-r y el
+# golden de H2. Detalle y justificación en docs/lecturas.md.
+
+[stops]
+calibrated = false
+# Paradas sin `stop_duration`: se confirman con un StintStarted de un juego distinto en la
+# vuelta de la pasada o en la siguiente. Si no llega, la confirmación vence sin emitir cuando el
+# piloto completa la vuelta pasada + N. Con 2 sobra una vuelta: en São Paulo el stint llega al
+# empezar la vuelta siguiente a la pasada, y en Mónaco antes de la pasada.
+confirm_timeout_laps = 2
+
+[undercut_window]
+calibrated = false
+# Distancia máxima al auto de adelante. Dentro de 2 s el perseguidor sigue en el aire sucio del
+# rival y no puede pasarlo en pista; en 2026 no hay DRS, así que no hay un umbral de 1 s.
+max_gap_s = 2.0
+# Edad mínima del neumático del perseguidor, en vueltas de uso. Con juegos jóvenes la
+# degradación todavía no da ventaja a un juego nuevo. Criterio físico sin respaldo en datos:
+# en São Paulo las primeras paradas son a las 14 vueltas de uso, pero Mónaco tiene paradas
+# verdes en las vueltas 3, 4 y 9.
+min_tyre_age_laps = 10
+# Vueltas seguidas con las condiciones vigentes antes de emitir. Evita avisar por un
+# acercamiento de una vuelta (por ejemplo, un auto doblado que se interpone).
+confirm_laps = 2
+# Sin parada propia ni del rival en las últimas N vueltas: un juego recién puesto no tiene el
+# desgaste que hace útil el undercut, y tras una parada el intervalo todavía se está asentando.
+recent_stop_laps = 3

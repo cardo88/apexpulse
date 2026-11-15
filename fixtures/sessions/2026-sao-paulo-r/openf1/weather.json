@@ -1,38 +1,16 @@
 [
- {
-  "date": "2026-11-08T16:10:32.670000+00:00",
-  "session_key": 11412,
-  "pressure": 930.0,
-  "wind_speed": 1.3,
-  "meeting_key": 1299,
-  "humidity": 88.7,
-  "wind_direction": 178,
-  "rainfall": 0,
-  "track_temperature": 43.6,
-  "air_temperature": 16.3
- },
- {
-  "date": "2026-11-08T16:11:32.671000+00:00",
-  "session_key": 11412,
-  "pressure": 930.0,
-  "wind_speed": 2.9,
-  "meeting_key": 1299,
-  "humidity": 89.2,
-  "wind_direction": 187,
-  "rainfall": 0,
-  "track_temperature": 26.6,
-  "air_temperature": 16.4
- },
- {
-  "date": "2026-11-08T16:12:32.659000+00:00",
-  "session_key": 11412,
-  "pressure": 929.9,
-  "wind_speed": 1.4,
-  "meeting_key": 1299,
-  "humidity": 88.9,
-  "wind_direction": 188,
-  "rainfall": 0,
-  "track_temperature": 28.6,
-  "air_temperature": 16.5
- }
+{"date":"2026-11-08T17:19:32.958000+00:00","session_key":11412,"pressure":930.2,"wind_speed":2.4,"meeting_key":1299,"humidity":86.0,"wind_direction":169,"rainfall":0,"track_temperature":25.6,"air_temperature":16.3},
+{"date":"2026-11-08T17:20:32.957000+00:00","session_key":11412,"pressure":930.2,"wind_speed":2.0,"meeting_key":1299,"humidity":85.7,"wind_direction":158,"rainfall":0,"track_temperature":26.9,"air_temperature":16.3},
+{"date":"2026-11-08T17:21:32.969000+00:00","session_key":11412,"pressure":930.2,"wind_speed":2.7,"meeting_key":1299,"humidity":85.2,"wind_direction":179,"rainfall":0,"track_temperature":25.8,"air_temperature":16.2},
+{"date":"2026-11-08T17:22:32.964000+00:00","session_key":11412,"pressure":930.2,"wind_speed":2.7,"meeting_key":1299,"humidity":85.2,"wind_direction":198,"rainfall":0,"track_temperature":24.8,"air_temperature":16.2},
+{"date":"2026-11-08T17:23:32.964000+00:00","session_key":11412,"pressure":930.2,"wind_speed":2.5,"meeting_key":1299,"humidity":85.7,"wind_direction":167,"rainfall":0,"track_temperature":24.5,"air_temperature":16.2},
+{"date":"2026-11-08T17:24:32.980000+00:00","session_key":11412,"pressure":930.2,"wind_speed":3.6,"meeting_key":1299,"humidity":86.1,"wind_direction":168,"rainfall":0,"track_temperature":23.8,"air_temperature":16.2},
+{"date":"2026-11-08T17:25:32.969000+00:00","session_key":11412,"pressure":930.2,"wind_speed":1.5,"meeting_key":1299,"humidity":86.0,"wind_direction":188,"rainfall":0,"track_temperature":0.0,"air_temperature":16.2},
+{"date":"2026-11-08T17:26:33.006000+00:00","session_key":11412,"pressure":930.2,"wind_speed":3.2,"meeting_key":1299,"humidity":85.8,"wind_direction":181,"rainfall":0,"track_temperature":26.2,"air_temperature":16.2},
+{"date":"2026-11-08T17:27:32.977000+00:00","session_key":11412,"pressure":930.1,"wind_speed":4.6,"meeting_key":1299,"humidity":85.8,"wind_direction":192,"rainfall":0,"track_temperature":27.4,"air_temperature":16.2},
+{"date":"2026-11-08T17:28:32.977000+00:00","session_key":11412,"pressure":930.1,"wind_speed":2.7,"meeting_key":1299,"humidity":85.6,"wind_direction":181,"rainfall":0,"track_temperature":24.0,"air_temperature":16.1},
+{"date":"2026-11-08T17:29:32.970000+00:00","session_key":11412,"pressure":930.0,"wind_speed":4.6,"meeting_key":1299,"humidity":85.3,"wind_direction":172,"rainfall":0,"track_temperature":26.8,"air_temperature":16.1},
+{"date":"2026-11-08T17:30:32.968000+00:00","session_key":11412,"pressure":930.0,"wind_speed":4.9,"meeting_key":1299,"humidity":85.5,"wind_direction":190,"rainfall":0,"track_temperature":24.5,"air_temperature":16.2},
+{"date":"2026-11-08T17:31:32.978000+00:00","session_key":11412,"pressure":930.0,"wind_speed":3.4,"meeting_key":1299,"humidity":85.7,"wind_direction":188,"rainfall":0,"track_temperature":26.5,"air_temperature":16.2},
+{"date":"2026-11-08T17:32:32.972000+00:00","session_key":11412,"pressure":930.1,"wind_speed":2.4,"meeting_key":1299,"humidity":85.8,"wind_direction":179,"rainfall":0,"track_temperature":26.2,"air_temperature":16.2}
 ]

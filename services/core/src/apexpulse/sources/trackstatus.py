@@ -8,11 +8,15 @@ verificadas con 2026-monaco-r (SC en las vueltas 60 y 66, bandera roja en la 68)
 | SessionStatus SESSION STARTED o SESSION RESUMED | GREEN        |
 | SafetyCar ... SAFETY CAR DEPLOYED               | SC           |
 | SafetyCar ... SAFETY CAR IN THIS LAP            | SC_ENDING    |
-| SafetyCar ... VIRTUAL SAFETY CAR DEPLOYED       | VSC          |
-| SafetyCar ... VIRTUAL SAFETY CAR ENDING         | VSC_ENDING   |
+| SafetyCar ... VSC DEPLOYED                      | VSC          |
+| SafetyCar ... VSC ENDING                        | VSC_ENDING   |
 | Bandera RED, RED FLAG ... o SESSION ABORTED     | RED          |
 | Bandera CHEQUERED o SESSION FINISHED            | FINISHED     |
 | TRACK CLEAR o bandera GREEN de pista, en ENDING | GREEN        |
+
+OpenF1 publica el VSC como `VSC DEPLOYED` y `VSC ENDING` (verificado en 14 de las 20 carreras
+2026 corridas hasta el 2026-11-08); la forma larga de la FIA, `VIRTUAL SAFETY CAR DEPLOYED` y
+`VIRTUAL SAFETY CAR ENDING`, se acepta también.
 
 Un estado `*_ENDING` también pasa a GREEN cuando el líder empieza la vuelta siguiente a la del
 mensaje, si eso ocurre antes que un TRACK CLEAR. Un TRACK CLEAR durante SC, VSC o rojo no
@@ -46,9 +50,9 @@ def _transicion(rc: RaceControlMessage, actual: TrackStatus | None) -> TrackStat
     if bandera == "CHEQUERED":
         return TrackStatus.FINISHED
     if categoria == "SAFETYCAR":
-        if "VIRTUAL SAFETY CAR DEPLOYED" in texto:
+        if "VSC DEPLOYED" in texto or "VIRTUAL SAFETY CAR DEPLOYED" in texto:
             return TrackStatus.VSC
-        if "VIRTUAL SAFETY CAR ENDING" in texto:
+        if "VSC ENDING" in texto or "VIRTUAL SAFETY CAR ENDING" in texto:
             return TrackStatus.VSC_ENDING
         if "SAFETY CAR DEPLOYED" in texto:
             return TrackStatus.SC

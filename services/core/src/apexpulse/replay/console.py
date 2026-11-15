@@ -1,8 +1,8 @@
 """Salida del replay por consola: una línea por hecho relevante, con hora UTC y vuelta del líder.
 
 Por defecto se imprimen un marcador por vuelta, los cambios de estado de pista, los mensajes de
-dirección de carrera (sin traducir y sin las banderas azules) y las paradas con detención. Con
-`verbose` sale cada evento.
+dirección de carrera (sin traducir y sin las banderas azules), las paradas con detención y las
+lecturas del motor (`LECTURA`). Con `verbose` sale cada evento.
 """
 
 from __future__ import annotations
@@ -51,6 +51,8 @@ class ConsolePrinter:
             texto = self._describir(paso)
             if texto is not None:
                 salida.append(f"{paso.event.t:%H:%M:%S}  v{paso.lap:<3} {texto}")
+            for lectura in paso.readings:
+                salida.append(f"{paso.event.t:%H:%M:%S}  v{paso.lap:<3} LECTURA    {lectura.text}")
         return salida
 
     def _describir(self, paso: Step) -> str | None:

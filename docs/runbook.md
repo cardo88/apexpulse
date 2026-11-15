@@ -32,4 +32,16 @@ Errores de `make replay`. Diseño en [arquitectura.md](arquitectura.md#reloj-de-
 | `ERROR: eventos fuera de orden en la fila 10 (...); volver a correr make normalize` | El Parquet no salió de `write_events` o lo editó otra herramienta | `make normalize SESSION=<id>` |
 | `ERROR: 2026-monaco-r: esquema canónico 2.0, el replay espera 1.x; volver a correr make normalize SESSION=2026-monaco-r` | Parquet de otra versión mayor del modelo | `make normalize SESSION=<id>` con la versión actual |
 | `ERROR: 2026-monaco-r: no hay datos para empezar la vuelta 30` | `FROM_LAP` fuera de las vueltas de la sesión, o anterior a las del crudo | Elegir una vuelta que tenga datos |
-| El marcador dice `lidera ---` | La sesión no trae eventos de posición 1 hasta ese instante (OpenF1 publica la posición solo cuando cambia; pasa en los fixtures recortados) | Ninguna; con la sesión completa aparece el código |
+| El marcador dice `lidera ---` | La sesión no trae eventos de posición 1 hasta ese instante: OpenF1 publica la posición solo cuando cambia, y un recorte hecho a mano pierde el registro anterior a la ventana | Recortar con `make fixture`, que arrastra el último registro anterior de cada piloto; con la sesión completa no ocurre |
+
+## Lecturas
+
+Diagnóstico del motor de lecturas. Diseño en [lecturas.md](lecturas.md).
+
+| Síntoma | Causa | Corrección |
+|---------|-------|------------|
+| `ConfigError: readings.toml [undercut_window]: claves desconocidas ... o faltantes ...` | Se editó `config/readings.toml` con una clave que el cargador no conoce, o falta una | Ajustar el archivo o `readings/config.py` (`load_config`) y actualizar `docs/lecturas.md` |
+| `ConfigError: mensajes_es.toml: faltan estados ... o compuestos ...` | Se sumó un estado de pista o un compuesto al modelo sin su texto | Agregarlo a `[estados]` o `[compuestos]` de `config/mensajes_es.toml` |
+| Falta la lectura de una parada bajo SC o VSC | La pasada no tiene `stop_duration` y la confirmación diferida venció: no llegó un stint con juego distinto en la vuelta de la pasada ni en la siguiente (por ejemplo, el stint se partió con el mismo juego) | Revisar `pit` y `stints` del piloto en el crudo; si OpenF1 cambió cómo marca los stints, seguir "Cambio de esquema" del skill `fuente-de-datos` y revisar `juego_distinto` |
+| Ninguna lectura en una carrera con VSC | El estado `VSC` no se derivó: el texto de dirección de carrera cambió (hoy `VSC DEPLOYED` y `VSC ENDING`) | Verificar `make normalize SESSION=<id>`: debe listar `VSC` en "Estado de pista"; ajustar `sources/trackstatus.py` |
+| Muchas lecturas de `undercut_window` en las primeras vueltas | Umbrales sin calibrar y pelotón agrupado con el mismo juego | Esperado hasta la calibración de H2 (ver "Umbrales" en `lecturas.md`) |

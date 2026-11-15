@@ -1,6 +1,6 @@
 # Respuestas grabadas de OpenF1: 2026-monaco-r
 
-Respuestas reales de `https://api.openf1.org/v1` para la carrera de Mónaco 2026 (session_key 11299), grabadas el 2026-11-14 y recortadas al tramo entre las 14:15 y las 15:15 UTC sin modificar los registros. Las usa `services/core/tests/contract/test_openf1_normalize.py`, que las sirve con `httpx.MockTransport`: los tests no usan la red.
+Respuestas reales de `https://api.openf1.org/v1` para la carrera de Mónaco 2026 (session_key 11299), grabadas el 2026-11-14 y recortadas al tramo entre las 14:15 y las 15:15 UTC sin modificar los registros. Las usan `services/core/tests/contract/test_openf1_normalize.py` y `services/core/tests/test_replay.py`, que las sirve con `httpx.MockTransport`: los tests no usan la red.
 
 Qué cubre el tramo:
 
@@ -13,13 +13,21 @@ Qué cubre el tramo:
 | Archivo | Consulta original | Recorte |
 |---------|-------------------|---------|
 | sessions.json | `sessions?year=2026` | Solo las 5 sesiones de Monte Carlo |
-| laps.json | `laps?session_key=11299` | Vueltas 57 a 70 |
-| stints.json | `stints?session_key=11299` | Stints que se superponen con las vueltas 57 a 70 |
+| laps.json | `laps?session_key=11299` | Vueltas 57 a 70, la última vuelta completada antes de las 14:15 de cada piloto y la vuelta de inicio de cada stint incluido (el normalizador fecha un stint con esa fila) |
+| stints.json | `stints?session_key=11299` | Stints que se superponen con las vueltas 57 a 70 y el último anterior de cada piloto (para los que abandonaron antes) |
 | pit.json | `pit?session_key=11299` | `date` entre 14:15:00 y 15:15:00 |
-| intervals.json | `intervals?session_key=11299` | Ídem |
-| position.json | `position?session_key=11299` | Ídem |
-| race_control.json | `race_control?session_key=11299` | Ídem |
+| intervals.json | `intervals?session_key=11299` | Ídem, más el último registro con distancia anterior a las 14:15 y a la largada (13:00) de cada piloto |
+| position.json | `position?session_key=11299` | Ídem: más el último registro anterior a las 14:15 y a la largada de cada piloto |
+| race_control.json | `race_control?session_key=11299` | `date` entre 14:15:00 y 15:15:00 |
 | weather.json | `weather?session_key=11299` | Ídem |
 | drivers.json | `drivers?session_key=11299` | Sin recorte (22 pilotos) |
 
-Para regrabar: `make fetch SESSION=2026-monaco-r FORCE=1` y recortar desde `data/raw/2026/2026-monaco-r/openf1/` con el mismo criterio. Pesa 1,1 MB; intervals.json ocupa la mayor parte.
+OpenF1 publica `position`, `intervals` y los stints solo cuando el valor cambia. Por eso el recorte arrastra el último registro anterior de cada piloto: sin él no se sabe quién lidera (ANT, P1 desde la grilla) ni a qué distancia está cada auto hasta que haya un cambio. Con el arrastre, el estado del replay al llegar a las 14:15 es igual al de la sesión completa en posición, intervalo y stint de los 22 pilotos, en el líder y en el número de vuelta. Los registros arrastrados conservan su fecha original, anterior a la ventana: antes de las 14:15 el contador de vuelta de la consola salta (por ejemplo de la vuelta 4 a la 10) y no es confiable.
+
+Para regrabar, con el crudo ya descargado (`make fetch SESSION=2026-monaco-r`):
+
+```bash
+make fixture SESSION=2026-monaco-r DESDE=2026-06-07T14:15 HASTA=2026-06-07T15:15 LAPS=57-70
+```
+
+Pesa 1,1 MB; intervals.json ocupa la mayor parte.

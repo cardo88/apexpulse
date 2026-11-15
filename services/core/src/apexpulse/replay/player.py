@@ -18,6 +18,7 @@ from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Protocol
 
 from apexpulse.model import (
     SCHEMA_VERSION,
@@ -28,6 +29,7 @@ from apexpulse.model import (
     read_meta,
     sort_key,
 )
+from apexpulse.readings.model import Reading
 from apexpulse.replay.clock import Clock
 from apexpulse.replay.state import RaceState
 
@@ -39,13 +41,30 @@ class ReplayError(Exception):
     """El archivo canónico no se puede reproducir o el pedido no aplica a la sesión."""
 
 
+class Observer(Protocol):
+    """Quien se pliega con los eventos igual que `RaceState`, por ejemplo el motor de lecturas.
+
+    `reset` lo lleva al estado inicial; `process` recibe cada evento ya aplicado al estado y
+    devuelve las lecturas que produce. Tras un seek el replay lo reinicia y le pasa en silencio
+    los eventos salteados (descarta lo que devuelve).
+    """
+
+    def reset(self) -> None: ...
+
+    def process(self, evento: Event, state: RaceState) -> Sequence[Reading]: ...
+
+
 @dataclass(frozen=True)
 class Step:
-    """Un evento emitido con el contexto en el que ocurrió (antes de aplicarlo al estado)."""
+    """Un evento emitido con el contexto en el que ocurrió (antes de aplicarlo al estado).
+
+    `readings` son las lecturas que el observador produjo con este evento, ya aplicado.
+    """
 
     event: Event
     lap: int  # vuelta en curso del líder
     leader: int | None  # piloto en posición 1
+    readings: tuple[Reading, ...] = ()
 
 
 class Replay:
@@ -66,6 +85,7 @@ class Replay:
         speed: float | None = 1.0,
         max_gap_s: float | None = None,
         max_sleep_s: float = 0.5,
+        engine: Observer | None = None,
     ) -> None:
         _validar_version(meta)
         _validar_orden(events)
@@ -80,6 +100,7 @@ class Replay:
         self._speed = speed
         self._max_gap_s = max_gap_s
         self._max_sleep_s = max_sleep_s
+        self.engine = engine
         self._paused = False
         self._cursor = 0
         self.state = RaceState()
@@ -95,11 +116,19 @@ class Replay:
         *,
         speed: float | None = 1.0,
         max_gap_s: float | None = None,
+        engine: Observer | None = None,
     ) -> Replay:
         """Carga data/canonical/<sesion>.parquet."""
         if not path.exists():
             raise ReplayError(f"no existe {path}")
-        return cls(read_meta(path), read_events(path), clock, speed=speed, max_gap_s=max_gap_s)
+        return cls(
+            read_meta(path),
+            read_events(path),
+            clock,
+            speed=speed,
+            max_gap_s=max_gap_s,
+            engine=engine,
+        )
 
     # Consulta -------------------------------------------------------------------------------
 
@@ -176,9 +205,13 @@ class Replay:
     def _ir_a(self, indice: int, pos: float) -> None:
         if indice < self._cursor:
             self.state = RaceState()
+            if self.engine is not None:
+                self.engine.reset()
             self._cursor = 0
         for evento in self._events[self._cursor : indice]:
             self.state.apply(evento)
+            if self.engine is not None:
+                self.engine.process(evento, self.state)  # en silencio: el seek no emite
         self._cursor = indice
         self._reanclar(pos)
 
@@ -209,8 +242,10 @@ class Replay:
         lote: list[Step] = []
         while not self.finished and self._offsets[self._cursor] == instante:
             evento = self._events[self._cursor]
-            lote.append(Step(evento, self.state.lap, self.state.leader))
+            vuelta, lider = self.state.lap, self.state.leader
             self.state.apply(evento)
+            lecturas = () if self.engine is None else tuple(self.engine.process(evento, self.state))
+            lote.append(Step(evento, vuelta, lider, lecturas))
             self._cursor += 1
         if self._speed is None:
             self._anchor_pos = instante

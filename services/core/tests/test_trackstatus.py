@@ -45,6 +45,30 @@ def test_vsc_con_track_clear() -> None:
     ) == ["GREEN", "VSC", "VSC_ENDING", "GREEN"]
 
 
+def test_vsc_con_los_textos_de_openf1() -> None:
+    # Textos reales de 2026-melbourne-r (carrera de Australia): "VSC DEPLOYED" en la vuelta 12 y
+    # "VSC ENDING" en la 14; el líder empieza la 15 antes de que haya un TRACK CLEAR.
+    cambios = derive_track_status(
+        [
+            INICIO,
+            _rc(100, "VSC DEPLOYED", "SafetyCar", lap=12),
+            _rc(200, "VSC ENDING", "SafetyCar", lap=14),
+        ],
+        {15: T0 + timedelta(seconds=230)},
+    )
+    assert [c.status.value for c in cambios] == ["GREEN", "VSC", "VSC_ENDING", "GREEN"]
+    assert cambios[1].cause == "VSC DEPLOYED"
+    assert cambios[-1].t == T0 + timedelta(seconds=230)
+
+
+def test_mensajes_de_infraccion_de_vsc_no_cambian_el_estado() -> None:
+    assert _estados(
+        INICIO,
+        _rc(100, "INCIDENT INVOLVING CAR 5 (BOR) NOTED - VSC INFRINGEMENT", "Other"),
+        _rc(110, "FIA STEWARDS: 5 SECOND TIME PENALTY FOR CAR 5 (BOR) - VSC INFRINGEMENT", "Other"),
+    ) == ["GREEN"]
+
+
 def test_ending_se_cierra_cuando_el_lider_empieza_la_vuelta_siguiente() -> None:
     cambios = derive_track_status(
         [

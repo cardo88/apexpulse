@@ -4,6 +4,8 @@ Uso:
 - `python -m apexpulse fetch 2026-sao-paulo-r [--force] [--data-dir DIR]`
 - `python -m apexpulse normalize 2026-sao-paulo-r [--data-dir DIR]`
 - `python -m apexpulse replay 2026-sao-paulo-r [--speed N | --no-wait] [--from-lap N] [--verbose]`
+- `python -m apexpulse fixture 2026-monaco-r --desde 2026-06-07T14:15 --hasta 2026-06-07T15:15
+  --vueltas 57-70 --salida DIR [--vaciar intervals,weather] [--data-dir DIR]`
 
 El directorio de datos es, en orden: `--data-dir`, `APEXPULSE_DATA_DIR` o `./data`.
 """
@@ -15,13 +17,16 @@ import os
 import sys
 from collections import Counter
 from collections.abc import Sequence
+from datetime import UTC, datetime
 from pathlib import Path
 
 from apexpulse.model import TrackStatusChanged, write_events
+from apexpulse.readings import Engine
 from apexpulse.replay import ConsolePrinter, Replay, ReplayError, SystemClock
 from apexpulse.session_id import SessionId, SessionIdError
 from apexpulse.sources.base import FetchReport, SourceError
 from apexpulse.sources.openf1 import RATE_LIMITS, OpenF1Adapter
+from apexpulse.sources.openf1_recorte import Ventana, recortar_openf1
 from apexpulse.sources.ratelimit import RateLimiter
 
 
@@ -82,7 +87,7 @@ def _replay(args: argparse.Namespace) -> int:
     if not origen.exists():
         raise ReplayError(f"no existe {origen}: correr make normalize SESSION={session}")
     speed = None if args.no_wait else args.speed
-    replay = Replay.from_parquet(origen, SystemClock(), speed=speed)
+    replay = Replay.from_parquet(origen, SystemClock(), speed=speed, engine=Engine.default())
     if args.from_lap is not None:
         replay.seek_lap(args.from_lap)
     ritmo = "sin espera" if speed is None else f"x{speed:g}"
@@ -104,6 +109,41 @@ def _replay(args: argparse.Namespace) -> int:
         return 0
     print(f"Fin del replay: {emitidos} eventos, vuelta {replay.state.lap}")
     return 0
+
+
+def _fixture(args: argparse.Namespace) -> int:
+    session = SessionId.parse(args.session)
+    raw = _data_dir(args.data_dir) / "raw" / str(session.year) / str(session) / "openf1"
+    try:
+        ventana = Ventana(args.desde, args.hasta, *args.vueltas)
+    except ValueError as error:
+        raise SourceError(str(error)) from error
+    vaciar = frozenset(x for x in args.vaciar.split(",") if x)
+    filas = recortar_openf1(raw, Path(args.salida), ventana, vaciar=vaciar)
+    print(f"{session}: fixture recortado en {args.salida}")
+    for archivo, n in filas.items():
+        print(f"  {archivo + '.json':<18} {n:>7} registros")
+    return 0
+
+
+def _instante(valor: str) -> datetime:
+    try:
+        instante = datetime.fromisoformat(valor)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError(f"fecha inválida: {valor!r}") from error
+    return instante if instante.tzinfo is not None else instante.replace(tzinfo=UTC)
+
+
+def _rango_de_vueltas(valor: str) -> tuple[int, int]:
+    try:
+        desde, hasta = (int(parte) for parte in valor.split("-"))
+    except ValueError as error:
+        raise argparse.ArgumentTypeError(
+            f"se espera <desde>-<hasta>, por ejemplo 57-70: {valor!r}"
+        ) from error
+    if desde < 1 or hasta < desde:
+        raise argparse.ArgumentTypeError(f"rango de vueltas inválido: {valor!r}")
+    return desde, hasta
 
 
 def _velocidad(valor: str) -> float:
@@ -146,6 +186,34 @@ def main(argv: Sequence[str] | None = None) -> int:
     replay.add_argument("--verbose", action="store_true", help="imprime cada evento")
     replay.add_argument("--data-dir", help="directorio de datos (por defecto ./data)")
     replay.set_defaults(func=_replay)
+
+    fixture = sub.add_parser(
+        "fixture", help="recorta el crudo de OpenF1 a una ventana para armar un fixture"
+    )
+    fixture.add_argument("session", help="identificador <año>-<circuito>-<tipo>")
+    fixture.add_argument(
+        "--desde",
+        type=_instante,
+        required=True,
+        help="inicio de la ventana (UTC si no indica zona)",
+    )
+    fixture.add_argument("--hasta", type=_instante, required=True, help="fin de la ventana")
+    fixture.add_argument(
+        "--vueltas",
+        type=_rango_de_vueltas,
+        required=True,
+        help="rango de vueltas, por ejemplo 57-70",
+    )
+    fixture.add_argument(
+        "--salida",
+        required=True,
+        help="directorio de destino, por ejemplo fixtures/sessions/<id>/openf1",
+    )
+    fixture.add_argument(
+        "--vaciar", default="", help="endpoints a escribir vacíos, separados por coma"
+    )
+    fixture.add_argument("--data-dir", help="directorio de datos (por defecto ./data)")
+    fixture.set_defaults(func=_fixture)
 
     args = parser.parse_args(argv)
     try:
