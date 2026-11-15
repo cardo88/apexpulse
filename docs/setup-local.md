@@ -22,14 +22,14 @@ make setup    # uv sync --locked y git config core.hooksPath .githooks
 make check    # todas las verificaciones, las mismas que corre CI
 ```
 
-`make setup` baja Python 3.13 y las dependencias si faltan; `make check` corre unos 216 tests sin red y sin datos descargados (usan solo `fixtures/`). Los tiempos de un clon limpio medido están en [Tiempos](#tiempos).
+`make setup` baja Python 3.13 y las dependencias si faltan; `make check` corre 210 tests sin red y sin datos descargados (usan solo `fixtures/`); otros 6 se saltean y corren solo con las sesiones completas en `data/canonical`. Los tiempos de un clon limpio medido están en [Tiempos](#tiempos).
 
 `make help` lista los targets disponibles. El detalle de cada uno está en [ai/mapa-codigo.md](ai/mapa-codigo.md).
 
 ## Descargar una sesión
 
 ```bash
-make fetch SESSION=2026-sao-paulo-r          # 8 requests a OpenF1; después, caché local
+make fetch SESSION=2026-sao-paulo-r          # 9 requests a OpenF1; después, caché local
 make fetch SESSION=2026-sao-paulo-r FORCE=1  # ignora la caché y vuelve a bajar
 ```
 
@@ -161,7 +161,16 @@ CI no descarga datos de ninguna fuente: los tests usan solo fixtures versionados
 
 Medido el 2026-11-15 en un clon limpio de la rama h1/t8-golden, en macOS con uv ya instalado y su caché caliente (Python 3.13 y wheels ya descargados). En una compu sin caché, `make setup` suma la descarga de Python y de las dependencias.
 
-TIEMPOS_AQUI
+| Paso | Tiempo |
+|------|--------|
+| `git clone` | 2,6 s |
+| `make setup` | 0,7 s |
+| `make check` (lint, mypy, 210 tests, check-docs, check-skills, check-private) | 34,4 s |
+| **Del clon a `make check` en verde** | **unos 38 s** |
+| `make fetch SESSION=2026-sao-paulo-r` (9 requests reales) | 5,7 s |
+| `make normalize SESSION=2026-sao-paulo-r` | 0,5 s |
+
+Con eso quedan `data/raw` y `data/canonical` y `make replay SESSION=2026-sao-paulo-r NOWAIT=1` imprime las lecturas. `make golden-update` en un clon limpio no produce diff.
 
 ## Problemas comunes
 
