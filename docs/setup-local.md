@@ -16,7 +16,7 @@ En macOS: `brew install uv`. En Linux: ver la documentación de uv.
 ## Primer arranque
 
 ```bash
-git clone git@github.com:<usuario>/apexpulse.git
+git clone https://github.com/cardo88/apexpulse.git
 cd apexpulse
 make setup    # uv sync --locked y git config core.hooksPath .githooks
 make check    # todas las verificaciones, las mismas que corre CI

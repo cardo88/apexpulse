@@ -6,6 +6,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-15
+
 ### Added
 - Estructura inicial del repositorio, licencia MIT y aviso de proyecto no oficial.
 - Instrucciones para agentes (`AGENTS.md`, `CLAUDE.md`) y skills `cambio-documentado`, `nuevo-adr` y `sesion-replay`.
