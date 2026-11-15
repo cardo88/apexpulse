@@ -42,9 +42,13 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 | `conftest` | Fixtures compartidos: red bloqueada, reloj falso y OpenF1 simulado con respuestas grabadas. |
 | `contract.test_openf1` | Test de contrato del adaptador OpenF1 contra respuestas grabadas de 2026-sao-paulo-r. |
 | `contract.test_openf1_normalize` | Test de contrato del normalizador OpenF1 y del endpoint race_control con 2026-monaco-r. |
+| `helpers` | Ayudas de los tests de salida completa: pipeline desde fixtures, serialización y golden. |
 | `test_cli` | Tests de la línea de comandos (sin red: solo caminos que no llegan a la fuente). |
+| `test_golden` | Golden de `cheap_stop` sobre las tres carreras con fixtures y los casos que lo explican. |
 | `test_model` | Tests del modelo canónico v1.1: validación de eventos, orden y Parquet. |
 | `test_paquete` | Verifica que el paquete se instala e importa desde el entorno de uv. |
+| `test_pipeline` | Pipeline completo desde los fixtures: dos corridas independientes dan salida idéntica. |
+| `test_propiedades` | Propiedades de `undercut_window` sobre carreras reales (fixtures) y, si existen, completas. |
 | `test_ratelimit` | Tests del límite de tasa por ventanas deslizantes. |
 | `test_rawstore` | Tests del crudo en JSONL zstd. |
 | `test_readings` | Tests del motor de lecturas: paradas reales, `cheap_stop`, `undercut_window` y causalidad. |
@@ -81,3 +85,4 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 | `make normalize` | Genera los eventos canónicos v1 en data/canonical (SESSION=<id>; requiere make fetch) |
 | `make replay` | Reproduce una sesión por consola (SESSION=<id> [SPEED=<n>] [NOWAIT=1] [FROM_LAP=<n>] [VERBOSE=1]) |
 | `make fixture` | Recorta el crudo a una ventana y regraba fixtures/sessions (SESSION=<id> DESDE=<iso> HASTA=<iso> LAPS=<a>-<b> [SALIDA=<dir>] [VACIAR=<endpoints>]) |
+| `make golden-update` | Regraba tests/golden con la salida actual y muestra el diff (SESSION=<id> para una sola sesión) |

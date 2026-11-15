@@ -5,9 +5,9 @@ description: Descarga, normaliza, recorta y reproduce sesiones de F1 en ApexPuls
 
 # Sesión y replay
 
-Estado: `make fetch`, `make normalize`, `make replay` y `make fixture` están
-disponibles; `make golden` llega en H1 tarea 8. Antes de usarlos, confirmar en la
-tabla de comandos de AGENTS.md que existen.
+Estado: `make fetch`, `make normalize`, `make replay`, `make fixture` y
+`make golden-update` están disponibles. Antes de usarlos, confirmar en la tabla de
+comandos de AGENTS.md que existen.
 
 ## Identificador de sesión
 `<año>-<circuito>-<tipo>`, con tipo r, q, s, sq, fp1, fp2 o fp3.
@@ -24,7 +24,7 @@ services/core/src/apexpulse/config/circuits.toml.
 | Reproducir desde una vuelta | make replay SESSION=2026-sao-paulo-r FROM_LAP=40 |
 | Reproducir sin esperas      | make replay SESSION=2026-monaco-r NOWAIT=1       |
 | Recortar un fixture         | make fixture SESSION=2026-monaco-r DESDE=2026-06-07T14:15 HASTA=2026-06-07T15:15 LAPS=57-70 |
-| Regenerar golden            | make golden SESSION=2026-sao-paulo-r             |
+| Regrabar golden             | make golden-update SESSION=2026-monaco-r         |
 
 ## Reglas
 - Los fixtures se recortan al tramo que prueba algo, pesan menos de 2 MB y se
@@ -45,10 +45,11 @@ services/core/src/apexpulse/config/circuits.toml.
   con esperas reales. La vuelta es la vuelta en curso del líder (máximo de
   vueltas completadas más uno); ver docs/arquitectura.md#reloj-de-replay.
 - Errores de descarga o de esquema: usar el skill fuente-de-datos.
-- Golden se regenera solo con un motivo y revisando el diff completo; el
-  motivo va en el mensaje del commit.
+- Golden (tests/golden/, hoy solo `cheap_stop`) se regraba con `make golden-update`,
+  solo con un motivo y revisando el diff completo; el motivo va en el mensaje del
+  commit. El test normal nunca escribe.
 - El archivo estático de F1 se descarga solo desde la compu o el nodo propio,
   nunca desde CI ni desde la nube.
 
 ## Fuente de verdad
-docs/setup-local.md (desde H1 tarea 8) y Makefile.
+docs/setup-local.md y Makefile.

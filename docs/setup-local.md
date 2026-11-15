@@ -1,6 +1,6 @@
 # Setup local
 
-Requisitos, comandos y verificaciones para trabajar en ApexPulse desde la compu. Se completa en H1 tarea 8 con los golden tests.
+Requisitos, comandos y verificaciones para trabajar en ApexPulse desde la compu: del clon limpio a `make check` en verde, y de ahí a una sesión reproducida por consola.
 
 ## Requisitos
 
@@ -21,6 +21,8 @@ cd apexpulse
 make setup    # uv sync --locked y git config core.hooksPath .githooks
 make check    # todas las verificaciones, las mismas que corre CI
 ```
+
+`make setup` baja Python 3.13 y las dependencias si faltan; `make check` corre unos 216 tests sin red y sin datos descargados (usan solo `fixtures/`). Los tiempos de un clon limpio medido están en [Tiempos](#tiempos).
 
 `make help` lista los targets disponibles. El detalle de cada uno está en [ai/mapa-codigo.md](ai/mapa-codigo.md).
 
@@ -96,13 +98,27 @@ make fixture SESSION=2026-monaco-r DESDE=2026-06-07T14:15 HASTA=2026-06-07T15:15
 - `DESDE` y `HASTA` son instantes UTC si no llevan zona; `LAPS` es el rango de vueltas del líder. `SALIDA=<dir>` cambia el destino y `VACIAR=<endpoints>` (por ejemplo `intervals,position,weather`) escribe esos endpoints vacíos, para un fixture de carrera completa sin los pesados. Criterio de recorte y arrastre en [fuentes-de-datos.md](fuentes-de-datos.md#recorte-de-fixtures).
 - Sin make: `uv run --directory services/core python -m apexpulse fixture <id> --desde <iso> --hasta <iso> --vueltas <a>-<b> --salida <dir> --data-dir <ruta>`.
 
+## Tests y golden
+
+```bash
+make test                                        # todo pytest, sin red
+make golden-update                               # regraba tests/golden con la salida actual
+make golden-update SESSION=2026-monaco-r         # una sola sesión
+```
+
+- Los tests viven en `services/core/tests/` y usan solo `fixtures/`; los sockets están bloqueados. Con las sesiones completas en `data/canonical` (después de `make fetch` y `make normalize`) se suman unos casos extra que en CI se saltean.
+- `tests/test_golden.py` compara la salida de la regla `cheap_stop` sobre Mónaco, Australia y São Paulo con `tests/golden/<sesion>.cheap_stop.json`. Si cambia un texto, un umbral o el normalizador, el test falla y apunta a `make golden-update`.
+- `make golden-update` solo reescribe los golden y muestra `git diff --stat`. Revisar el diff completo (`git diff services/core/tests/golden`) y poner el motivo en el mensaje del commit. Nunca se regenera para "hacer pasar" un test sin entender la diferencia.
+- `tests/test_propiedades.py` (causalidad, una lectura por pareja y stint, seek, vuelta mínima) y `tests/test_pipeline.py` (dos corridas desde los fixtures dan salida idéntica) no usan golden: comparan la corrida contra sí misma o contra la secuencia completa.
+- Qué garantiza cada archivo y por qué `undercut_window` no tiene golden todavía: [lecturas.md](lecturas.md#golden-y-propiedades).
+
 ## Verificaciones
 
 | Target | Qué verifica | Falla cuando |
 |--------|--------------|--------------|
 | `make lint` | ruff sobre `services/core` y `scripts/` | Hay errores de estilo, imports desordenados, módulos sin docstring o archivos sin formatear |
 | `make typecheck` | mypy en modo estricto sobre `src/`, `tests/` y `scripts/` | Falta una anotación o un tipo no cierra |
-| `make test` | pytest en `services/core/tests` | Falla un test |
+| `make test` | pytest en `services/core/tests`: unitarios, contrato, golden, propiedades y pipeline | Falla un test; un golden que cambió falla con el aviso de `make golden-update` |
 | `make check-docs` | Documentación al día con el cambio | Ver la tabla siguiente |
 | `make check-skills` | Formato de `.claude/skills/*/SKILL.md` y tabla de skills de `AGENTS.md` | Falta `name` o `description`, el nombre no coincide con la carpeta, o la tabla no refleja los skills existentes |
 | `make check-private` | Capa privada fuera del repo público (ADR 0008) | `.private/` o `CLAUDE.local.md` están en el índice |
@@ -141,6 +157,12 @@ Variables: `WARN=1` informa los problemas y sale con 0; `BASE_REF=<ref>` cambia 
 
 CI no descarga datos de ninguna fuente: los tests usan solo fixtures versionados en `fixtures/sessions/` y `services/core/tests/conftest.py` bloquea los sockets durante los tests.
 
+## Tiempos
+
+Medido el 2026-11-15 en un clon limpio de la rama h1/t8-golden, en macOS con uv ya instalado y su caché caliente (Python 3.13 y wheels ya descargados). En una compu sin caché, `make setup` suma la descarga de Python y de las dependencias.
+
+TIEMPOS_AQUI
+
 ## Problemas comunes
 
 | Síntoma | Causa | Solución |
@@ -150,4 +172,6 @@ CI no descarga datos de ninguna fuente: los tests usan solo fixtures versionados
 | `make replay` responde `no existe data/canonical/...` | Falta normalizar la sesión | `make normalize SESSION=<id>` (y antes `make fetch` si no hay crudo) |
 | `make replay` responde `eventos fuera de orden` o `esquema canónico 2.x` | Parquet generado por otra versión del normalizador | `make normalize SESSION=<id>` |
 | `make fetch` responde `queda disponible desde ...` | La sesión no terminó o terminó hace menos de 30 minutos | Reintentar después; otros errores de descarga en [runbook.md](runbook.md#fuentes-de-datos) |
+| `make test` falla en `test_golden.py` con "la salida cambió" | Cambió un texto, un umbral, el normalizador o un fixture | Entender la diferencia; si es intencional, `make golden-update`, revisar el diff y justificarlo en el commit |
+| `test_golden.py` falla con "falta el golden" | Sesión nueva sin su archivo en `tests/golden/` | `make golden-update SESSION=<id>` y revisar el archivo nuevo |
 | check-docs marca archivos que no tocaste | La rama local `main` está atrasada | `git fetch origin` para actualizar `origin/main` |

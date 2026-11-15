@@ -38,9 +38,10 @@ Adaptadores por fuente, modelo canónico v1, reloj de replay, motor de lecturas,
 ## Motor de lecturas
 
 - `apexpulse.readings`: `Engine` + reglas `cheap_stop` (parada real bajo SC/VSC) y `undercut_window`. `make replay` imprime las lecturas (`LECTURA`). Detalle y umbrales en docs/lecturas.md.
+- Golden: `cheap_stop` tiene golden por sesión en services/core/tests/golden/ (`make golden-update`); `undercut_window` se cubre con propiedades hasta calibrar. Detalle en docs/lecturas.md.
 - Causal y determinístico; el estado del motor es un fold de los eventos y se reinicia y re-pliega con el seek, igual que `RaceState`. Se engancha al replay por el protocolo `Observer`.
 - Parada real: `stationary_s` no nulo, o stint nuevo en la vuelta de la pasada o la siguiente con juego de neumáticos distinto (confirmación diferida que vence sin emitir). OpenF1 abre el stint en la vuelta de la pasada (Mónaco) o en la siguiente (São Paulo) y bajo SC parte uno por pasada: no alcanza solo `stop_duration` ni solo el stint.
-- Umbrales en config/readings.toml, todos `calibrated = false`. Textos en config/mensajes_es.toml: sin afirmaciones de ahorro de tiempo. La regla de undercut no conoce las vueltas restantes.
+- Umbrales en config/readings.toml, todos `calibrated = false` (incluida la guarda `min_lap` de undercut). Textos en config/mensajes_es.toml: sin afirmaciones de ahorro de tiempo. La regla de undercut no conoce las vueltas restantes.
 - OpenF1 publica el VSC como `VSC DEPLOYED` y `VSC ENDING`.
 - Fixtures recortados con `make fixture` (arrastra el último registro previo de cada piloto): Mónaco (SC), São Paulo (vueltas 12 a 20) y Australia (tres VSC).
 

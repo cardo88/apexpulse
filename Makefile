@@ -6,7 +6,7 @@ UV_RUN := uv run --locked --directory $(CORE)
 PYTHON ?= python3
 DATA_DIR ?= $(CURDIR)/data
 
-.PHONY: help setup check lint typecheck test check-docs check-skills check-private mapa fetch normalize replay fixture
+.PHONY: help setup check lint typecheck test check-docs check-skills check-private mapa fetch normalize replay fixture golden-update
 
 help: ## Lista los targets disponibles
 	@grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -57,3 +57,8 @@ fixture: ## Recorta el crudo a una ventana y regraba fixtures/sessions (SESSION=
 	@test -n "$(SESSION)" -a -n "$(DESDE)" -a -n "$(HASTA)" -a -n "$(LAPS)" || { echo "Uso: make fixture SESSION=2026-monaco-r DESDE=2026-06-07T14:15 HASTA=2026-06-07T15:15 LAPS=57-70" >&2; exit 2; }
 	@$(UV_RUN) python -m apexpulse fixture $(SESSION) --data-dir $(DATA_DIR) --desde $(DESDE) --hasta $(HASTA) --vueltas $(LAPS) \
 		--salida $(or $(SALIDA),$(CURDIR)/fixtures/sessions/$(SESSION)/openf1) $(if $(VACIAR),--vaciar $(VACIAR))
+
+golden-update: ## Regraba tests/golden con la salida actual y muestra el diff (SESSION=<id> para una sola sesión)
+	@$(UV_RUN) pytest tests/test_golden.py --golden-update -q $(if $(SESSION),-k $(SESSION))
+	@git diff --stat -- $(CORE)/tests/golden
+	@echo "golden-update: revisar el diff completo (git diff $(CORE)/tests/golden) y poner el motivo en el commit"

@@ -48,6 +48,13 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - Skill `nueva-lectura`.
 - Fixture `2026-australia-r` (tres VSC, vueltas 12 a 35, 1,49 MiB) y fixture de carrera completa `fixtures/contract/2026-sao-paulo-r-paradas/` solo con `pit`, `stints`, `laps` y `race_control`.
 - `make fixture` con `SALIDA=<dir>` y `VACIAR=<endpoints>`.
+- Golden tests de `cheap_stop` sobre Mónaco, Australia y São Paulo (`services/core/tests/golden/`, `tests/test_golden.py`): Mónaco 8 lecturas, Australia con los VSC de las vueltas 12 (10) y 18 (4) y el de la 34 (1, de borde: pasada con el estado en `VSC_ENDING`), São Paulo 0.
+- `make golden-update [SESSION=<id>]`: regraba los golden y muestra el diff; el test normal nunca escribe (`pytest --golden-update`).
+- Propiedades de `undercut_window` (`tests/test_propiedades.py`): causalidad, una lectura por pareja y stint, estabilidad tras seek y respeto de la vuelta mínima, sobre los fixtures y, si están, sobre las carreras completas.
+- Test de pipeline completo desde los fixtures (`tests/test_pipeline.py`): dos corridas independientes dan los mismos avisos, bytes de Parquet, lecturas, consola y salida de la CLI.
+- Guarda `[undercut_window] min_lap` (por defecto 5, sin calibrar) y evidencia `vuelta_perseguidor`; `undercut_window` pasa a la versión 2. No cambia la salida de las tres carreras de prueba.
+- Test que cubre el aviso del normalizador cuando omite un stint sin `tyre_age_at_start`.
+- `docs/setup-local.md` completo (tests, golden, tiempos de un clon limpio) y `docs/lecturas.md` con los casos verificados, el análisis de las lecturas de las primeras vueltas y la sección de golden y propiedades.
 
 ### Changed
 - Dependencias de `services/core`: se suman `pydantic` y `pyarrow`.
@@ -58,6 +65,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - Modelo canónico: esquema 1.1 (versión menor). Los archivos 1.0 se siguen leyendo; renormalizar para tener los eventos `driver`.
 - `make fetch` con un manifiesto al que le faltan endpoints baja solo esos, en lugar de descargar toda la sesión otra vez.
 - El normalizador de OpenF1 avisa y sigue si el crudo no tiene `drivers`.
+- La tabla de comandos de `AGENTS.md` y el skill `sesion-replay` usan `make golden-update` en lugar del `make golden` previsto; el skill `nueva-lectura` describe el golden y las propiedades.
 
 ### Fixed
 - La edad del neumático de las lecturas cuenta la vuelta que se acaba de completar (un stint que empieza en la vuelta 1 tiene 10 vueltas de uso al completar la 10).
