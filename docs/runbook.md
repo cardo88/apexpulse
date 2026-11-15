@@ -21,3 +21,15 @@ Errores de `make fetch` (adaptador OpenF1). El procedimiento completo ante un ca
 | `AVISO: drivers: el crudo no tiene drivers, sin pilotos: 1 (por ejemplo correr make fetch SESSION=2026-monaco-r)` | Crudo bajado antes de sumar el endpoint `drivers`; el Parquet sale sin eventos `driver` | Correr `make fetch SESSION=<id>` (baja solo `drivers`, un request) y `make normalize SESSION=<id>` |
 | `AVISO: drivers: name_acronym ausente o no es de 3 letras, omitidos: ...` | OpenF1 publicó un piloto sin código o con otro formato | Revisar el registro en `data/raw/<año>/<sesion>/openf1/drivers.jsonl.zst`; si el formato cambió, seguir "Cambio de esquema" del skill `fuente-de-datos` |
 | `AVISO: laps: vueltas sin tiempo ni vuelta siguiente, omitidas: 7 (por ejemplo piloto 16 vuelta 65)` | Abandonos o la vuelta de la bandera roja: OpenF1 no tiene el tiempo y no hay vuelta siguiente | Ninguna; es esperable en carreras con abandonos |
+
+## Replay
+
+Errores de `make replay`. Diseño en [arquitectura.md](arquitectura.md#reloj-de-replay).
+
+| Síntoma | Causa | Corrección |
+|---------|-------|------------|
+| `ERROR: no existe .../data/canonical/2026-monaco-r.parquet: correr make normalize SESSION=2026-monaco-r` | La sesión no se normalizó | `make normalize SESSION=<id>` (y antes `make fetch` si no hay crudo) |
+| `ERROR: eventos fuera de orden en la fila 10 (...); volver a correr make normalize` | El Parquet no salió de `write_events` o lo editó otra herramienta | `make normalize SESSION=<id>` |
+| `ERROR: 2026-monaco-r: esquema canónico 2.0, el replay espera 1.x; volver a correr make normalize SESSION=2026-monaco-r` | Parquet de otra versión mayor del modelo | `make normalize SESSION=<id>` con la versión actual |
+| `ERROR: 2026-monaco-r: no hay datos para empezar la vuelta 30` | `FROM_LAP` fuera de las vueltas de la sesión, o anterior a las del crudo | Elegir una vuelta que tenga datos |
+| El marcador dice `lidera ---` | La sesión no trae eventos de posición 1 hasta ese instante (OpenF1 publica la posición solo cuando cambia; pasa en los fixtures recortados) | Ninguna; con la sesión completa aparece el código |

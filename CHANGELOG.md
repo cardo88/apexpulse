@@ -34,9 +34,13 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - `docs/modelo-de-eventos.md` y tabla de mapeo de OpenF1 a eventos canónicos en `docs/fuentes-de-datos.md`.
 - Endpoint `drivers` de OpenF1 en el adaptador, con su esquema, caché y test de contrato, y fixtures `drivers.json` de `2026-monaco-r` y `2026-sao-paulo-r`.
 - Evento canónico `driver` (`DriverInfo`): número del auto, código de 3 letras (`acronym`), nombre y equipo, con `t` igual al inicio de la sesión. Columnas `acronym`, `name` y `team` en el Parquet.
+- Reloj de replay (`apexpulse.replay`): reloj inyectable (`SystemClock` y `FakeClock`), reproducción de `data/canonical/<sesion>.parquet` en el orden del normalizador, con multiplicador de velocidad, modo sin espera, pausa, `seek`, `seek_lap` y recorte opcional de huecos (`max_gap_s`).
+- Estado acumulado de la carrera (`RaceState`) como fold puro de los eventos, con la convención de vuelta en curso del líder y el líder como piloto en posición 1.
+- `make replay SESSION=<id> [SPEED=<n>] [NOWAIT=1] [FROM_LAP=<n>] [VERBOSE=1]` (`python -m apexpulse replay`), con salida por consola en hora UTC.
 
 ### Changed
 - Dependencias de `services/core`: se suman `pydantic` y `pyarrow`.
+- `FakeClock` de los tests pasa de `tests/conftest.py` a `apexpulse.replay.clock`; conftest lo reexporta y los tests del límite de tasa no cambian.
 - Modelo canónico: esquema 1.1 (versión menor). Los archivos 1.0 se siguen leyendo; renormalizar para tener los eventos `driver`.
 - `make fetch` con un manifiesto al que le faltan endpoints baja solo esos, en lugar de descargar toda la sesión otra vez.
 - El normalizador de OpenF1 avisa y sigue si el crudo no tiene `drivers`.

@@ -12,6 +12,11 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 | `apexpulse.model` | Modelo canónico de eventos v1 y su persistencia en Parquet (ADR 0002 y 0005). |
 | `apexpulse.model.events` | Eventos canónicos v1: el contrato entre los adaptadores de fuente y el resto del sistema. |
 | `apexpulse.model.parquet` | Persistencia de los eventos canónicos en Parquet: una tabla ancha por sesión (ADR 0005). |
+| `apexpulse.replay` | Reloj de replay: reproduce una sesión canónica con velocidad, pausa y seek. |
+| `apexpulse.replay.clock` | Reloj inyectable del replay: el del sistema para la consola y uno falso para los tests. |
+| `apexpulse.replay.console` | Salida del replay por consola: una línea por hecho relevante, con hora UTC y vuelta del líder. |
+| `apexpulse.replay.player` | Reproductor de una sesión canónica con velocidad variable, pausa y seek. |
+| `apexpulse.replay.state` | Estado acumulado de la carrera: un fold puro de los eventos canónicos en orden. |
 | `apexpulse.session_id` | Identificador de sesión `<año>-<circuito>-<tipo>` y tabla de circuitos. |
 | `apexpulse.sources` | Adaptadores de fuente: lo único del código que conoce el formato de cada fuente (ADR 0002). |
 | `apexpulse.sources.base` | Contrato común de los adaptadores de fuente: descarga del crudo y normalización a eventos v1. |
@@ -33,6 +38,7 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 | `test_paquete` | Verifica que el paquete se instala e importa desde el entorno de uv. |
 | `test_ratelimit` | Tests del límite de tasa por ventanas deslizantes. |
 | `test_rawstore` | Tests del crudo en JSONL zstd. |
+| `test_replay` | Tests del reloj de replay con 2026-monaco-r como caso principal, sin esperas reales. |
 | `test_session_id` | Tests del identificador de sesión y de la tabla de circuitos. |
 | `test_trackstatus` | Tests de la derivación del estado de pista a partir de mensajes de dirección de carrera. |
 
@@ -62,3 +68,4 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 | `make mapa` | Regenera docs/ai/mapa-codigo.md |
 | `make fetch` | Descarga y cachea una sesión de OpenF1 (SESSION=<id>; FORCE=1 ignora la caché) |
 | `make normalize` | Genera los eventos canónicos v1 en data/canonical (SESSION=<id>; requiere make fetch) |
+| `make replay` | Reproduce una sesión por consola (SESSION=<id> [SPEED=<n>] [NOWAIT=1] [FROM_LAP=<n>] [VERBOSE=1]) |

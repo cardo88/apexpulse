@@ -5,8 +5,8 @@ description: Descarga, normaliza, recorta y reproduce sesiones de F1 en ApexPuls
 
 # Sesión y replay
 
-Estado: `make fetch` y `make normalize` están disponibles; el resto de los
-targets llega en H1, tareas 6 a 8. Antes de usarlos, confirmar en la tabla de comandos de AGENTS.md
+Estado: `make fetch`, `make normalize` y `make replay` están disponibles;
+`make fixture` y `make golden` llegan en H1 tarea 8. Antes de usarlos, confirmar en la tabla de comandos de AGENTS.md
 que existen.
 
 ## Identificador de sesión
@@ -22,6 +22,7 @@ services/core/src/apexpulse/config/circuits.toml.
 | Normalizar                  | make normalize SESSION=2026-sao-paulo-r          |
 | Reproducir por consola      | make replay SESSION=2026-sao-paulo-r SPEED=30    |
 | Reproducir desde una vuelta | make replay SESSION=2026-sao-paulo-r FROM_LAP=40 |
+| Reproducir sin esperas      | make replay SESSION=2026-monaco-r NOWAIT=1       |
 | Recortar un fixture         | make fixture SESSION=2026-sao-paulo-r LAPS=30-45 |
 | Regenerar golden            | make golden SESSION=2026-sao-paulo-r             |
 
@@ -33,6 +34,9 @@ services/core/src/apexpulse/config/circuits.toml.
 - `make normalize` es repetible y sin red: después de cambiar el modelo o el
   normalizador, volver a correrlo sobre el crudo de data/raw.
 - data/ nunca se versiona.
+- Tests del replay: siempre con `FakeClock` (apexpulse.replay.clock), nunca
+  con esperas reales. La vuelta es la vuelta en curso del líder (máximo de
+  vueltas completadas más uno); ver docs/arquitectura.md#reloj-de-replay.
 - Errores de descarga o de esquema: usar el skill fuente-de-datos.
 - Golden se regenera solo con un motivo y revisando el diff completo; el
   motivo va en el mensaje del commit.
