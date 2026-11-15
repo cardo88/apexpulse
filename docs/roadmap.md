@@ -75,4 +75,4 @@ Cada uno tiene su detalle en [lecturas.md](lecturas.md) o [fuentes-de-datos.md](
 | Decidir si un estado `*_ENDING` cuenta como neutralización para `cheap_stop` | Caso de borde de Australia, vuelta 34: pasada 2 s antes del verde |
 | Permitir `tyre_age` nulo en el modelo en lugar de omitir el stint | Hoy se omiten con aviso; ninguna de las tres carreras tiene casos |
 | Stint omitido en Australia porque su vuelta de inicio no está en `laps` (piloto 27) | Una pérdida de datos aislada que conviene entender |
-| Las 4 reglas restantes (degradación, batalla, condiciones) y el adaptador del archivo estático | Alcance de H2 |
+| Las 3 reglas restantes (degradación, batalla, condiciones) y el adaptador del archivo estático | Alcance de H2 |
