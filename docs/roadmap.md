@@ -40,7 +40,7 @@ Hitos de ApexPulse y su estado. Cada hito cierra con una versión etiquetada y u
 
 | Hito | Entregable | Criterio de cierre | Estado |
 |------|------------|--------------------|--------|
-| H1. Primera lectura | v0.1.0: docs y skills base, ingesta OpenF1, modelo canónico, replay por consola, 2 reglas | `make replay SESSION=2026-sao-paulo-r SPEED=30` imprime lecturas en español con vuelta y evidencia; CI en verde | Cerrado; la etiqueta v0.1.0 la corta el autor |
+| H1. Primera lectura | v0.1.0: docs y skills base, ingesta OpenF1, modelo canónico, replay por consola, 2 reglas | `make replay SESSION=2026-sao-paulo-r SPEED=30` imprime lecturas en español con vuelta y evidencia; CI en verde | Cerrado; etiqueta v0.1.0 sobre main (2026-11-15) |
 | H2. Motor v1 | v0.2.0: 5 reglas, adaptador del archivo estático, golden tests sobre 3 carreras | Cada regla con un caso real verificado y documentado en docs/lecturas.md | Pendiente |
 | H3. Vista "En carrera" | v0.3.0: API con SSE, web mobile primero, identidad visual v1 | 150 KB o menos en la carga inicial; replay fluido a x30 en un teléfono de gama media | Pendiente |
 | H4. Post-carrera | v0.4.0: página estática por sesión con imagen para compartir | 3 post-carreras generados con un comando y revisados | Pendiente |

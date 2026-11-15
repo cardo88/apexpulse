@@ -6,6 +6,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Unreleased]
 
+### Changed
+- Roadmap: H1 figura como cerrado con la etiqueta v0.1.0 ya cortada.
+
 ## [0.1.0] - 2026-11-15
 
 ### Added
