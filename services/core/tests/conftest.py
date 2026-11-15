@@ -1,4 +1,7 @@
-"""Fixtures compartidos: red bloqueada, reloj falso y OpenF1 simulado con respuestas grabadas."""
+"""Fixtures compartidos: red bloqueada, reloj falso y OpenF1 simulado con respuestas grabadas.
+
+El reloj falso es `apexpulse.replay.clock.FakeClock`, el mismo que usan los tests del replay.
+"""
 
 from __future__ import annotations
 
@@ -11,6 +14,8 @@ from typing import Any
 
 import httpx
 import pytest
+
+from apexpulse.replay.clock import FakeClock as FakeClock  # re-export para los tests
 
 RAIZ = Path(__file__).resolve().parents[3]
 FIXTURES = RAIZ / "fixtures" / "sessions"
@@ -27,21 +32,6 @@ def sin_red(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr(socket.socket, "connect", bloqueado)
     monkeypatch.setattr(socket, "create_connection", bloqueado)
-
-
-@dataclass
-class FakeClock:
-    """Reloj controlado: `sleep` avanza el tiempo sin esperar."""
-
-    t: float = 1_000_000.0
-    sleeps: list[float] = field(default_factory=list)
-
-    def __call__(self) -> float:
-        return self.t
-
-    def sleep(self, segundos: float) -> None:
-        self.sleeps.append(segundos)
-        self.t += segundos
 
 
 @pytest.fixture

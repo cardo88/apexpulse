@@ -1,6 +1,6 @@
 # Contexto para agentes
 
-Digest de la arquitectura y de las decisiones vigentes. Límite: 200 líneas. Se actualiza con cada ADR o cambio de arquitectura (skill cambio-documentado). Última actualización: 2026-11-14.
+Digest de la arquitectura y de las decisiones vigentes. Límite: 200 líneas. Se actualiza con cada ADR o cambio de arquitectura (skill cambio-documentado). Última actualización: 2026-11-15.
 
 ## Producto
 
@@ -26,6 +26,14 @@ Adaptadores por fuente, modelo canónico v1, reloj de replay, motor de lecturas,
 - `track_status` se deriva de race_control (sources/trackstatus.py). `NEUTRALIZED` = SC, SC_ENDING, VSC y VSC_ENDING; el rojo queda aparte.
 - `pit.stationary_s` null es una pasada por el pit lane, no una parada.
 - Detalle en docs/modelo-de-eventos.md.
+
+## Replay
+
+- `apexpulse.replay`: reloj inyectable (`Clock`, `SystemClock`, `FakeClock`), `Replay` sobre el Parquet canónico y `RaceState` como fold puro (`apply`). `make replay SESSION=<id> SPEED=<n>`, con `NOWAIT=1` y `FROM_LAP=<n>`.
+- El orden de emisión es el de `sort_key`: el replay valida, no reordena. Los eventos con el mismo `t` salen en un lote.
+- El seek deja el estado igual a reproducir hasta ese instante y no emite lo salteado. La posición inicial es `SessionMeta.start`.
+- Vuelta N = vuelta en curso del líder = máximo de vueltas completadas + 1, fija desde la bandera a cuadros. Coincide con el `lap` de los mensajes de la FIA. El líder que se nombra es el de P1.
+- Tests con `FakeClock`, sin esperas reales. Detalle en docs/arquitectura.md#reloj-de-replay.
 
 ## Decisiones vigentes
 

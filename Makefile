@@ -6,7 +6,7 @@ UV_RUN := uv run --locked --directory $(CORE)
 PYTHON ?= python3
 DATA_DIR ?= $(CURDIR)/data
 
-.PHONY: help setup check lint typecheck test check-docs check-skills check-private mapa fetch normalize
+.PHONY: help setup check lint typecheck test check-docs check-skills check-private mapa fetch normalize replay
 
 help: ## Lista los targets disponibles
 	@grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -47,3 +47,8 @@ fetch: ## Descarga y cachea una sesión de OpenF1 (SESSION=<id>; FORCE=1 ignora 
 normalize: ## Genera los eventos canónicos v1 en data/canonical (SESSION=<id>; requiere make fetch)
 	@test -n "$(SESSION)" || { echo "Uso: make normalize SESSION=2026-sao-paulo-r" >&2; exit 2; }
 	@$(UV_RUN) python -m apexpulse normalize $(SESSION) --data-dir $(DATA_DIR)
+
+replay: ## Reproduce una sesión por consola (SESSION=<id> [SPEED=<n>] [NOWAIT=1] [FROM_LAP=<n>] [VERBOSE=1])
+	@test -n "$(SESSION)" || { echo "Uso: make replay SESSION=2026-sao-paulo-r SPEED=30" >&2; exit 2; }
+	@$(UV_RUN) python -m apexpulse replay $(SESSION) --data-dir $(DATA_DIR) \
+		$(if $(NOWAIT),--no-wait,--speed $(or $(SPEED),1)) $(if $(FROM_LAP),--from-lap $(FROM_LAP)) $(if $(VERBOSE),--verbose)

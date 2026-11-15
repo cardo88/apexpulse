@@ -1,6 +1,6 @@
 # Setup local
 
-Requisitos, comandos y verificaciones para trabajar en ApexPulse desde la compu. Se completa en H1 tarea 8 con el replay de sesiones.
+Requisitos, comandos y verificaciones para trabajar en ApexPulse desde la compu. Se completa en H1 tarea 8 con los golden tests.
 
 ## Requisitos
 
@@ -47,6 +47,37 @@ make normalize SESSION=2026-monaco-r   # requiere el crudo de make fetch; no usa
 - Se puede repetir: misma entrada, mismo archivo. Después de cambiar el modelo o el normalizador, volver a correrlo.
 - Sin make: `uv run --directory services/core python -m apexpulse normalize <id> --data-dir <ruta>`.
 - Esquema en [modelo-de-eventos.md](modelo-de-eventos.md); mapeo desde OpenF1 en [fuentes-de-datos.md](fuentes-de-datos.md#mapeo-a-eventos-canónicos).
+
+## Reproducir una sesión
+
+```bash
+make replay SESSION=2026-monaco-r SPEED=30              # 30 s de sesión por segundo real
+make replay SESSION=2026-monaco-r NOWAIT=1 FROM_LAP=59  # sin esperas, desde la vuelta 59
+make replay SESSION=2026-monaco-r NOWAIT=1 VERBOSE=1    # cada evento
+```
+
+- Requiere `data/canonical/<sesion>.parquet` (`make normalize`). No usa la red.
+- `SPEED` es el multiplicador, mayor que 0 (por defecto 1). `NOWAIT=1` reproduce sin esperar e ignora `SPEED`. `FROM_LAP=<n>` empieza en la vuelta `n` del líder.
+- Sale una línea por hecho, con hora UTC y vuelta en curso del líder: un marcador por vuelta, los cambios de estado de pista, los mensajes de dirección de carrera (sin traducir y sin las banderas azules) y las paradas con detención. `VERBOSE=1` suma vueltas, posiciones, intervalos, stints, clima, pilotos, banderas azules y pasadas por el pit lane sin detención.
+- Ctrl-C corta con código 130. Cortar la salida con `| head` no es un error.
+- Sin make: `uv run --directory services/core python -m apexpulse replay <id> --speed 30 [--no-wait] [--from-lap N] [--verbose] --data-dir <ruta>`.
+- Diseño del reloj, del seek y de la convención de vuelta en [arquitectura.md](arquitectura.md#reloj-de-replay).
+
+Ejemplo real (`make replay SESSION=2026-monaco-r NOWAIT=1 FROM_LAP=60`, recortado):
+
+```text
+2026-monaco-r · Mónaco · openf1 · sin espera · hora UTC
+── Vuelta 60 · lidera ANT
+14:19:45  v60  DIRECCIÓN  YELLOW IN TRACK SECTOR 18
+14:20:02  v60  DIRECCIÓN  SAFETY CAR DEPLOYED
+14:20:02  v60  PISTA      SC (SAFETY CAR DEPLOYED)
+── Vuelta 61 · lidera ANT
+14:21:26  v61  PARADA     HAM 8,6 s detenido · 31,2 s en pit lane
+14:21:34  v61  PARADA     ALO 4,3 s detenido · 26,3 s en pit lane
+14:21:52  v61  DIRECCIÓN  ALL CARS THROUGH THE PIT LANE
+```
+
+Las lecturas en español se suman a esta salida en H1 tarea 7.
 
 ## Verificaciones
 
@@ -99,5 +130,7 @@ CI no descarga datos de ninguna fuente: los tests usan solo fixtures versionados
 |---------|-------|----------|
 | `error: The lockfile at uv.lock needs to be updated` | Cambió `pyproject.toml` sin regenerar el lock | `uv lock --directory services/core` y commitear `uv.lock` |
 | `make: uv: No such file or directory` | uv no instalado | Instalar uv (ver Requisitos) |
+| `make replay` responde `no existe data/canonical/...` | Falta normalizar la sesión | `make normalize SESSION=<id>` (y antes `make fetch` si no hay crudo) |
+| `make replay` responde `eventos fuera de orden` o `esquema canónico 2.x` | Parquet generado por otra versión del normalizador | `make normalize SESSION=<id>` |
 | `make fetch` responde `queda disponible desde ...` | La sesión no terminó o terminó hace menos de 30 minutos | Reintentar después; otros errores de descarga en [runbook.md](runbook.md#fuentes-de-datos) |
 | check-docs marca archivos que no tocaste | La rama local `main` está atrasada | `git fetch origin` para actualizar `origin/main` |
