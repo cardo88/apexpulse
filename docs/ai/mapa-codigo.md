@@ -12,6 +12,14 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 | `apexpulse.model` | Modelo canónico de eventos v1 y su persistencia en Parquet (ADR 0002 y 0005). |
 | `apexpulse.model.events` | Eventos canónicos v1: el contrato entre los adaptadores de fuente y el resto del sistema. |
 | `apexpulse.model.parquet` | Persistencia de los eventos canónicos en Parquet: una tabla ancha por sesión (ADR 0005). |
+| `apexpulse.readings` | Motor de lecturas: reglas determinísticas sobre el replay, con conclusiones en español. |
+| `apexpulse.readings.cheap_stop` | Regla `cheap_stop`: parada real bajo Safety Car o VSC. |
+| `apexpulse.readings.config` | Carga y validación de config/readings.toml y config/mensajes_es.toml. |
+| `apexpulse.readings.engine` | Motor de lecturas: aplica las reglas a cada evento, en el orden del replay. |
+| `apexpulse.readings.format` | Formato de números de los textos: coma decimal. |
+| `apexpulse.readings.model` | Modelo de una lectura: una conclusión con su evidencia numérica y su texto en español. |
+| `apexpulse.readings.stops` | Seguimiento de paradas reales: la memoria que comparten las reglas. |
+| `apexpulse.readings.undercut` | Regla `undercut_window`: un auto lleva varias vueltas pegado al de adelante. |
 | `apexpulse.replay` | Reloj de replay: reproduce una sesión canónica con velocidad, pausa y seek. |
 | `apexpulse.replay.clock` | Reloj inyectable del replay: el del sistema para la consola y uno falso para los tests. |
 | `apexpulse.replay.console` | Salida del replay por consola: una línea por hecho relevante, con hora UTC y vuelta del líder. |
@@ -22,6 +30,7 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 | `apexpulse.sources.base` | Contrato común de los adaptadores de fuente: descarga del crudo y normalización a eventos v1. |
 | `apexpulse.sources.openf1` | Adaptador de OpenF1: descarga histórica con caché local, límite de tasa y reintentos. |
 | `apexpulse.sources.openf1_normalize` | Normalizador de OpenF1: del crudo en data/raw a eventos canónicos v1. |
+| `apexpulse.sources.openf1_recorte` | Recorte de una sesión de OpenF1 a una ventana, para armar fixtures versionados. |
 | `apexpulse.sources.ratelimit` | Límite de tasa por ventanas deslizantes, con estado opcional compartido entre ejecuciones. |
 | `apexpulse.sources.rawstore` | Escritura y lectura del crudo en JSONL comprimido con zstd (ADR 0005). |
 | `apexpulse.sources.trackstatus` | Deriva el estado de pista (SC, VSC, rojo) de los mensajes de dirección de carrera. |
@@ -38,6 +47,8 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 | `test_paquete` | Verifica que el paquete se instala e importa desde el entorno de uv. |
 | `test_ratelimit` | Tests del límite de tasa por ventanas deslizantes. |
 | `test_rawstore` | Tests del crudo en JSONL zstd. |
+| `test_readings` | Tests del motor de lecturas: paradas reales, `cheap_stop`, `undercut_window` y causalidad. |
+| `test_recorte` | Tests del recorte de fixtures de OpenF1 con un crudo sintético de dos pilotos. |
 | `test_replay` | Tests del reloj de replay con 2026-monaco-r como caso principal, sin esperas reales. |
 | `test_session_id` | Tests del identificador de sesión y de la tabla de circuitos. |
 | `test_trackstatus` | Tests de la derivación del estado de pista a partir de mensajes de dirección de carrera. |
@@ -69,3 +80,4 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 | `make fetch` | Descarga y cachea una sesión de OpenF1 (SESSION=<id>; FORCE=1 ignora la caché) |
 | `make normalize` | Genera los eventos canónicos v1 en data/canonical (SESSION=<id>; requiere make fetch) |
 | `make replay` | Reproduce una sesión por consola (SESSION=<id> [SPEED=<n>] [NOWAIT=1] [FROM_LAP=<n>] [VERBOSE=1]) |
+| `make fixture` | Recorta el crudo a una ventana y regraba fixtures/sessions (SESSION=<id> DESDE=<iso> HASTA=<iso> LAPS=<a>-<b> [SALIDA=<dir>] [VACIAR=<endpoints>]) |

@@ -28,31 +28,17 @@ from apexpulse.model import (
     write_events,
 )
 from apexpulse.replay import FakeClock, RaceState, Replay, ReplayError, Step
-from apexpulse.session_id import SessionId
-from apexpulse.sources import Normalized, OpenF1Adapter
-from apexpulse.sources.openf1 import RATE_LIMITS
-from apexpulse.sources.ratelimit import RateLimiter
-from conftest import OPENF1_MONACO, OPENF1_SAO_PAULO, FakeOpenF1
+from apexpulse.sources import Normalized
+from conftest import OPENF1_MONACO, OPENF1_SAO_PAULO, normalizar_fixture
 
-AHORA = datetime(2026, 11, 14, 18, 0, tzinfo=UTC)
 ROJA = datetime(2026, 6, 7, 14, 35, 6, 971000, tzinfo=UTC)
 REANUDACION = datetime(2026, 6, 7, 15, 12, 0, 71000, tzinfo=UTC)
-
-
-def _normalizar(directorio: Path, session: str, raw: Path) -> Normalized:
-    clock = FakeClock()
-    fake = FakeOpenF1(directorio, clock)
-    limiter = RateLimiter(RATE_LIMITS, clock=clock, sleep=clock.sleep)
-    adapter = OpenF1Adapter(fake.client(), limiter, sleep=clock.sleep, now=lambda: AHORA)
-    sid = SessionId.parse(session)
-    adapter.fetch(sid, raw)
-    return adapter.normalize(sid, raw)
 
 
 @pytest.fixture(scope="module")
 def monaco(tmp_path_factory: pytest.TempPathFactory) -> tuple[Normalized, Path]:
     datos = tmp_path_factory.mktemp("monaco")
-    resultado = _normalizar(OPENF1_MONACO, "2026-monaco-r", datos / "raw")
+    resultado = normalizar_fixture(OPENF1_MONACO, "2026-monaco-r", datos / "raw")
     destino = datos / "canonical" / "2026-monaco-r.parquet"
     write_events(destino, resultado.meta, resultado.events)
     return resultado, destino
@@ -61,7 +47,7 @@ def monaco(tmp_path_factory: pytest.TempPathFactory) -> tuple[Normalized, Path]:
 @pytest.fixture(scope="module")
 def sao_paulo(tmp_path_factory: pytest.TempPathFactory) -> Path:
     datos = tmp_path_factory.mktemp("sao-paulo")
-    resultado = _normalizar(OPENF1_SAO_PAULO, "2026-sao-paulo-r", datos / "raw")
+    resultado = normalizar_fixture(OPENF1_SAO_PAULO, "2026-sao-paulo-r", datos / "raw")
     destino = datos / "canonical" / "2026-sao-paulo-r.parquet"
     write_events(destino, resultado.meta, resultado.events)
     return destino
@@ -94,11 +80,12 @@ def test_orden_coincide_con_el_normalizador(
     replay = Replay.from_parquet(path, clock, speed=None)
     emitidos = [paso.event for paso in _pasos(replay)]
     esperado = sorted(resultado.events, key=sort_key)
-    # La largada (13:00) es posterior al primer evento del recorte: lo previo se pliega.
+    # El recorte trae las posiciones de la grilla, anteriores a la largada (13:00): el replay las
+    # pliega al empezar y no las emite.
     previos = [e for e in esperado if e.t < resultado.meta.start]
-    assert previos == []
-    assert emitidos == esperado
-    assert emitidos == read_events(path)
+    assert previos
+    assert emitidos == esperado[len(previos) :]
+    assert emitidos == read_events(path)[len(previos) :]
     assert clock.sleeps == []
 
 
@@ -156,7 +143,8 @@ def test_cada_lote_sale_cuando_vence(parquet: Path, clock: FakeClock) -> None:
 def test_sin_espera_no_duerme(parquet: Path, clock: FakeClock) -> None:
     replay = Replay.from_parquet(parquet, clock, speed=None)
     assert replay.due_in() == 0.0
-    assert len(_pasos(replay)) == len(read_events(parquet))
+    previos = [e for e in read_events(parquet) if e.t < replay.meta.start]
+    assert len(_pasos(replay)) == len(read_events(parquet)) - len(previos)
     assert clock.sleeps == []
     assert replay.finished
     assert replay.due_in() is None
@@ -261,7 +249,8 @@ def test_seek_antes_del_inicio_se_ajusta_al_inicio(parquet: Path, clock: FakeClo
     replay.seek(ROJA)
     replay.seek(replay.meta.start - timedelta(hours=2))
     assert replay.position == replay.meta.start
-    assert replay.state == RaceState()
+    assert replay.state == _plegar(parquet, replay.meta.start)
+    assert replay.state.events_applied > 0  # la grilla anterior a la largada
     assert [p.event.kind for p in replay.pop_due()] == ["driver"] * 22
 
 
@@ -332,13 +321,25 @@ def test_cambios_de_estado_de_pista_por_vuelta(parquet: Path, clock: FakeClock) 
     ]
 
 
-def test_lider_es_el_piloto_en_p1_en_sao_paulo(sao_paulo: Path, clock: FakeClock) -> None:
-    # El recorte de Mónaco no trae eventos de P1 (OpenF1 publica la posición solo al cambiar y
-    # ANT lidera desde antes del tramo), por eso el líder se prueba con São Paulo.
+def test_lider_desde_el_inicio_en_el_recorte_de_monaco(parquet: Path, clock: FakeClock) -> None:
+    # OpenF1 publica la posición solo al cambiar y ANT lidera desde antes del tramo: el recorte
+    # trae el último registro previo de cada piloto, así el líder está desde la primera línea.
+    replay = Replay.from_parquet(parquet, clock, speed=None)
+    assert replay.state.leader == 12
+    primero = replay.pop_due()  # los `driver` llegan con la largada
+    assert primero[0].leader == 12
+    assert replay.state.acronym(12) == "ANT"
+
+
+def test_lider_en_sao_paulo_es_el_poleman_al_inicio_y_ant_en_la_ventana(
+    sao_paulo: Path, clock: FakeClock
+) -> None:
     replay = Replay.from_parquet(sao_paulo, clock, speed=None)
-    replay.seek(datetime(2026, 11, 9, tzinfo=UTC))
-    assert replay.state.leader == 1
-    assert replay.state.acronym(1) == "NOR"
+    replay.pop_due()  # los `driver` llegan con la largada
+    assert replay.state.acronym(replay.state.leader) == "NOR"  # P1 de la grilla, antes de largar
+    replay.seek(datetime(2026, 11, 8, 17, 19, tzinfo=UTC))  # inicio de la ventana (vuelta 12)
+    assert replay.state.acronym(replay.state.leader) == "ANT"
+    assert replay.state.lap == 11  # el último auto completó la 10 antes de la ventana
 
 
 def _t(segundos: float) -> datetime:
@@ -384,13 +385,18 @@ def test_paradas_bajo_sc_en_monaco(parquet: Path, clock: FakeClock) -> None:
     assert sum(a.lane_passes for a in replay.state.cars.values()) > 0
 
 
-def test_paradas_normales_de_sao_paulo_traen_detencion(sao_paulo: Path, clock: FakeClock) -> None:
-    pits = read_events(sao_paulo, kinds=["pit"])
-    assert pits
-    assert all(isinstance(p, PitLane) and p.stationary_s is not None for p in pits)
+def test_pits_de_sao_paulo_sin_detencion_son_tres(sao_paulo: Path, clock: FakeClock) -> None:
+    # 21 pasadas por boxes en la ventana (vueltas 12 a 20); 3 sin `stop_duration` en OpenF1 y con
+    # ~24 s en el pit lane, como las que sí tienen detención (HAD, VER y ALO).
+    pits = [p for p in read_events(sao_paulo, kinds=["pit"]) if isinstance(p, PitLane)]
+    assert len(pits) == 21
+    sin_detencion = [p for p in pits if p.stationary_s is None]
     replay = Replay.from_parquet(sao_paulo, clock, speed=None)
     replay.seek(datetime(2026, 11, 9, tzinfo=UTC))
-    assert sum(a.stops for a in replay.state.cars.values()) == len(pits)
+    assert {replay.state.acronym(p.driver) for p in sin_detencion} == {"HAD", "VER", "ALO"}
+    assert all(p.lane_s is not None and 23 < p.lane_s < 25 for p in sin_detencion)
+    assert sum(a.stops for a in replay.state.cars.values()) == 18
+    assert sum(a.lane_passes for a in replay.state.cars.values()) == 3
 
 
 # CLI -------------------------------------------------------------------------------------
@@ -404,8 +410,8 @@ def test_cli_replay_sin_espera(
     assert main(["replay", "2026-monaco-r", "--no-wait", "--data-dir", str(datos)]) == 0
     salida = capsys.readouterr().out
     assert "2026-monaco-r · Mónaco · openf1 · sin espera · hora UTC" in salida
-    # Sin eventos de P1 en el recorte, el marcador no nombra líder.
-    assert "── Vuelta 60 · lidera ---" in salida
+    assert "── Vuelta 1 · lidera ANT" in salida  # líder desde la primera línea
+    assert "── Vuelta 60 · lidera ANT" in salida
     assert "14:20:02  v60  DIRECCIÓN  SAFETY CAR DEPLOYED" in salida
     assert "14:20:02  v60  PISTA      SC (SAFETY CAR DEPLOYED)" in salida
     assert "v68  PISTA      RED" in salida
@@ -421,7 +427,7 @@ def test_cli_replay_desde_vuelta_y_verbose(
     argv = ["replay", "2026-monaco-r", "--no-wait", "--from-lap", "66", "--verbose"]
     assert main([*argv, "--data-dir", datos]) == 0
     salida = capsys.readouterr().out
-    assert salida.splitlines()[1] == "── Vuelta 66 · lidera ---"
+    assert salida.splitlines()[1] == "── Vuelta 66 · lidera ANT"
     assert "SAFETY CAR DEPLOYED" in salida  # el segundo SC, en la 66
     assert "14:20:02" not in salida
     assert "POSICIÓN" in salida

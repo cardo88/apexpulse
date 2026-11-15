@@ -59,5 +59,5 @@ Hitos de ApexPulse y su estado. Cada hito cierra con una versión etiquetada y u
 | 4 | Adaptador OpenF1 con caché y límite de tasa; `make fetch` | Hecha |
 | 5 | Modelo canónico v1 y normalizador; docs/modelo-de-eventos.md | Hecha |
 | 6 | Reloj de replay y `make replay` | Hecha |
-| 7 | Reglas "parada barata bajo SC/VSC" y "ventana de undercut" | Pendiente |
+| 7 | Reglas "parada barata bajo SC/VSC" y "ventana de undercut" | Hecha |
 | 8 | Golden test; docs/setup-local.md y docs/lecturas.md | Pendiente |

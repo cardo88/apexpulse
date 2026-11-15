@@ -58,7 +58,7 @@ make replay SESSION=2026-monaco-r NOWAIT=1 VERBOSE=1    # cada evento
 
 - Requiere `data/canonical/<sesion>.parquet` (`make normalize`). No usa la red.
 - `SPEED` es el multiplicador, mayor que 0 (por defecto 1). `NOWAIT=1` reproduce sin esperar e ignora `SPEED`. `FROM_LAP=<n>` empieza en la vuelta `n` del líder.
-- Sale una línea por hecho, con hora UTC y vuelta en curso del líder: un marcador por vuelta, los cambios de estado de pista, los mensajes de dirección de carrera (sin traducir y sin las banderas azules) y las paradas con detención. `VERBOSE=1` suma vueltas, posiciones, intervalos, stints, clima, pilotos, banderas azules y pasadas por el pit lane sin detención.
+- Sale una línea por hecho, con hora UTC y vuelta en curso del líder: un marcador por vuelta, los cambios de estado de pista, los mensajes de dirección de carrera (sin traducir y sin las banderas azules), las paradas con detención y las lecturas del motor (`LECTURA`). `VERBOSE=1` suma vueltas, posiciones, intervalos, stints, clima, pilotos, banderas azules y pasadas por el pit lane sin detención.
 - Ctrl-C corta con código 130. Cortar la salida con `| head` no es un error.
 - Sin make: `uv run --directory services/core python -m apexpulse replay <id> --speed 30 [--no-wait] [--from-lap N] [--verbose] --data-dir <ruta>`.
 - Diseño del reloj, del seek y de la convención de vuelta en [arquitectura.md](arquitectura.md#reloj-de-replay).
@@ -77,7 +77,24 @@ Ejemplo real (`make replay SESSION=2026-monaco-r NOWAIT=1 FROM_LAP=60`, recortad
 14:21:52  v61  DIRECCIÓN  ALL CARS THROUGH THE PIT LANE
 ```
 
-Las lecturas en español se suman a esta salida en H1 tarea 7.
+Con el motor de lecturas (por defecto en `make replay`), cada lectura sale como una línea `LECTURA`, debajo del evento que la dispara:
+
+```text
+14:21:26  v61  PARADA     HAM 8,6 s detenido · 31,2 s en pit lane
+14:21:26  v61  LECTURA    HAM para bajo Safety Car en la vuelta 61: 8,6 s detenido y 31,2 s en pit lane.
+```
+
+Reglas, umbrales y textos en [lecturas.md](lecturas.md).
+
+## Recortar un fixture
+
+```bash
+make fixture SESSION=2026-monaco-r DESDE=2026-06-07T14:15 HASTA=2026-06-07T15:15 LAPS=57-70
+```
+
+- Requiere el crudo (`make fetch`); no usa la red. Sobrescribe `fixtures/sessions/<id>/openf1/` (menos de 2 MB por sesión): revisar el diff antes de commitear.
+- `DESDE` y `HASTA` son instantes UTC si no llevan zona; `LAPS` es el rango de vueltas del líder. `SALIDA=<dir>` cambia el destino y `VACIAR=<endpoints>` (por ejemplo `intervals,position,weather`) escribe esos endpoints vacíos, para un fixture de carrera completa sin los pesados. Criterio de recorte y arrastre en [fuentes-de-datos.md](fuentes-de-datos.md#recorte-de-fixtures).
+- Sin make: `uv run --directory services/core python -m apexpulse fixture <id> --desde <iso> --hasta <iso> --vueltas <a>-<b> --salida <dir> --data-dir <ruta>`.
 
 ## Verificaciones
 

@@ -12,7 +12,7 @@
 | [ai/mapa-codigo.md](ai/mapa-codigo.md) | Mapa de módulos generado por `make mapa` | Vigente |
 | [setup-local.md](setup-local.md) | Requisitos, comandos make, verificaciones y CI | Vigente; se completa en H1 tarea 8 |
 | [modelo-de-eventos.md](modelo-de-eventos.md) | Esquema de eventos canónicos v1, estado de pista, Parquet y versionado | Vigente |
-| lecturas.md | Catálogo de reglas: condición, umbrales, plantilla, ejemplo | H1 tareas 7 y 8 |
+| [lecturas.md](lecturas.md) | Catálogo de reglas: condición, umbrales, plantilla, ejemplo | Vigente; el golden llega en H1 tarea 8 |
 | diseno-visual.md | Tokens, tipografía, componentes y presupuesto de peso | H3 |
 | [runbook.md](runbook.md) | Operación ante fallas: fuente caída, esquema roto, nodo caído, baja de contenido | Vigente para fuentes de datos; se completa en H5 |
 

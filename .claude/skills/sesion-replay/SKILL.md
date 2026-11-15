@@ -5,9 +5,9 @@ description: Descarga, normaliza, recorta y reproduce sesiones de F1 en ApexPuls
 
 # Sesión y replay
 
-Estado: `make fetch`, `make normalize` y `make replay` están disponibles;
-`make fixture` y `make golden` llegan en H1 tarea 8. Antes de usarlos, confirmar en la tabla de comandos de AGENTS.md
-que existen.
+Estado: `make fetch`, `make normalize`, `make replay` y `make fixture` están
+disponibles; `make golden` llega en H1 tarea 8. Antes de usarlos, confirmar en la
+tabla de comandos de AGENTS.md que existen.
 
 ## Identificador de sesión
 `<año>-<circuito>-<tipo>`, con tipo r, q, s, sq, fp1, fp2 o fp3.
@@ -23,7 +23,7 @@ services/core/src/apexpulse/config/circuits.toml.
 | Reproducir por consola      | make replay SESSION=2026-sao-paulo-r SPEED=30    |
 | Reproducir desde una vuelta | make replay SESSION=2026-sao-paulo-r FROM_LAP=40 |
 | Reproducir sin esperas      | make replay SESSION=2026-monaco-r NOWAIT=1       |
-| Recortar un fixture         | make fixture SESSION=2026-sao-paulo-r LAPS=30-45 |
+| Recortar un fixture         | make fixture SESSION=2026-monaco-r DESDE=2026-06-07T14:15 HASTA=2026-06-07T15:15 LAPS=57-70 |
 | Regenerar golden            | make golden SESSION=2026-sao-paulo-r             |
 
 ## Reglas
@@ -31,6 +31,13 @@ services/core/src/apexpulse/config/circuits.toml.
   versionan en fixtures/sessions/, con un README que diga la consulta original
   y el recorte. Ejemplo: fixtures/sessions/2026-monaco-r/openf1/ (SC con
   paradas, segundo SC y bandera roja, 14:15 a 15:15 UTC).
+- Recortar siempre con `make fixture`, nunca a mano: arrastra el último registro
+  previo de cada piloto (OpenF1 publica position, intervals y stints solo al
+  cambiar). Un recorte a mano deja la consola con `lidera ---`. Los tests de
+  contrato del adaptador usan fixtures/contract/ (pocos registros), no sessions/.
+- Para una carrera completa sin los endpoints pesados (por ejemplo, para probar paradas):
+  `make fixture ... SALIDA=<dir> VACIAR=intervals,position,weather`. Ejemplo:
+  fixtures/contract/2026-sao-paulo-r-paradas/.
 - `make normalize` es repetible y sin red: después de cambiar el modelo o el
   normalizador, volver a correrlo sobre el crudo de data/raw.
 - data/ nunca se versiona.

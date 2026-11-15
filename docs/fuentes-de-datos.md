@@ -84,7 +84,33 @@ Un campo obligatorio puede venir en `null` (por ejemplo, `lap_duration` de la vu
 
 ### Tests
 
-`services/core/tests/contract/test_openf1.py` usa las respuestas grabadas de `fixtures/sessions/2026-sao-paulo-r/openf1/` servidas con `httpx.MockTransport`. `test_openf1_normalize.py` usa `fixtures/sessions/2026-monaco-r/openf1/` (tramo del SC, las paradas bajo SC y la bandera roja): descarga `race_control` y el resto de los endpoints contra OpenF1 simulado y verifica la normalización. `tests/conftest.py` bloquea los sockets: un test que intente usar la red falla. Diagnóstico de errores en [runbook.md](runbook.md#fuentes-de-datos).
+`services/core/tests/contract/test_openf1.py` usa las respuestas mínimas de `fixtures/contract/2026-sao-paulo-r/openf1/` (tres registros por endpoint) servidas con `httpx.MockTransport`. `test_openf1_normalize.py`, `test_replay.py` y `test_readings.py` usan los recortes de `fixtures/sessions/2026-monaco-r/openf1/` (tramo del SC, las paradas bajo SC y la bandera roja), `fixtures/sessions/2026-sao-paulo-r/openf1/` (primera tanda de paradas, vueltas 12 a 20) y `fixtures/sessions/2026-australia-r/openf1/` (tres VSC, vueltas 12 a 35); `test_readings.py` usa además `fixtures/contract/2026-sao-paulo-r-paradas/openf1/` (carrera completa solo con `pit`, `stints`, `laps` y `race_control`): descargan los endpoints contra OpenF1 simulado y verifican la normalización. `tests/conftest.py` bloquea los sockets: un test que intente usar la red falla. Diagnóstico de errores en [runbook.md](runbook.md#fuentes-de-datos).
+
+### Recorte de fixtures
+
+`make fixture SESSION=<id> DESDE=<iso> HASTA=<iso> LAPS=<a>-<b>` parte del crudo de `data/raw` y escribe los JSON en `fixtures/sessions/<id>/openf1/` sin modificar ningún registro. OpenF1 publica `position`, `intervals` y los stints solo cuando el valor cambia, así que un recorte por tiempo pierde el estado de arranque. Criterio:
+
+| Endpoint | Qué conserva |
+|----------|--------------|
+| `pit`, `race_control`, `weather` | `date` dentro de la ventana |
+| `position` | Ventana, más el último registro anterior a ella y el último anterior a la largada, de cada piloto |
+| `intervals` | Ídem, solo registros con alguna distancia (el normalizador descarta los demás) |
+| `stints` | Los que se superponen con el rango de vueltas y el último anterior de cada piloto |
+| `laps` | Rango de vueltas, la última completada antes de la ventana de cada piloto y la vuelta de inicio de cada stint incluido (el normalizador fecha un stint con esa fila) |
+| `drivers` | Todos |
+| `sessions` | Las del mismo fin de semana (`meeting_key`) |
+
+Los archivos tienen un registro por línea, sin modificarlo. `--vaciar` escribe como lista vacía los endpoints que se indiquen.
+
+Los registros arrastrados conservan su fecha: el replay pliega sin emitir los anteriores a la largada y emite el resto durante el hueco previo a la ventana, donde el contador de vuelta no es confiable. Al llegar a la ventana el estado coincide con el de la sesión completa (posición, intervalo y stint de cada piloto, líder y vuelta).
+
+### Textos de dirección de carrera
+
+OpenF1 publica el VSC como `VSC DEPLOYED` y `VSC ENDING` con `category=SafetyCar`, no con la forma larga de la FIA. `sources/trackstatus.py` acepta las dos. Detalle en [modelo-de-eventos.md](modelo-de-eventos.md#estado-de-pista).
+
+### Paradas y stints
+
+El campo `stop_duration` de `pit` puede faltar en paradas reales (5 de 58 en São Paulo, 54 de 86 en Mónaco, la mayoría pasadas por el pit lane bajo SC y bandera roja). `lap_start` del stint nuevo coincide con `lap_number` de la pasada en Mónaco y es la vuelta siguiente en São Paulo, y bajo SC OpenF1 abre un stint por cada pasada aunque el juego de neumáticos no cambie. Una regla que necesite saber si hubo cambio de neumáticos no puede usar solo `stop_duration` ni solo el número de stint.
 
 ## Archivo estático de F1 Live Timing
 

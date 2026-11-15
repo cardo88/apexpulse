@@ -1,0 +1,54 @@
+[
+ {
+  "meeting_key": 1299,
+  "session_key": 11412,
+  "date": "2026-11-08T16:13:18+00:00",
+  "driver_number": null,
+  "lap_number": 1,
+  "category": "Other",
+  "flag": null,
+  "scope": null,
+  "sector": null,
+  "qualifying_phase": null,
+  "message": "LOW GRIP DELTA ACTIVE"
+ },
+ {
+  "meeting_key": 1299,
+  "session_key": 11412,
+  "date": "2026-11-08T16:13:20+00:00",
+  "driver_number": null,
+  "lap_number": 1,
+  "category": "Other",
+  "flag": null,
+  "scope": null,
+  "sector": null,
+  "qualifying_phase": null,
+  "message": "LOW GRIP CONDITIONS"
+ },
+ {
+  "meeting_key": 1299,
+  "session_key": 11412,
+  "date": "2026-11-08T16:15:02+00:00",
+  "driver_number": null,
+  "lap_number": 1,
+  "category": "Flag",
+  "flag": "CLEAR",
+  "scope": "Sector",
+  "sector": 16,
+  "qualifying_phase": null,
+  "message": "CLEAR IN TRACK SECTOR 16"
+ },
+ {
+  "meeting_key": 1299,
+  "session_key": 11412,
+  "date": "2026-11-08T16:15:02+00:00",
+  "driver_number": null,
+  "lap_number": 1,
+  "category": "Flag",
+  "flag": "CLEAR",
+  "scope": "Sector",
+  "sector": 15,
+  "qualifying_phase": null,
+  "message": "CLEAR IN TRACK SECTOR 15"
+ }
+]

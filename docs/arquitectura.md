@@ -98,6 +98,20 @@ data/
 └── site/post/<sesion>.json                    # entrada del post-carrera
 ```
 
+## Motor de lecturas
+
+Paquete `apexpulse.readings`. Aplica reglas determinísticas a los eventos del replay y produce lecturas con evidencia numérica y texto en español. Catálogo, umbrales y ejemplos en [lecturas.md](lecturas.md).
+
+| Pieza | Módulo | Qué hace |
+|-------|--------|----------|
+| `Engine` | `readings/engine.py` | Llama a las reglas con cada evento ya aplicado a `RaceState`; guarda el historial de lecturas |
+| `StopTracker` | `readings/stops.py` | Memoria compartida: qué pasadas por el pit lane son paradas reales, con confirmación diferida y vencimiento |
+| `CheapStop`, `UndercutWindow` | `readings/cheap_stop.py`, `readings/undercut.py` | Las dos reglas de H1 |
+| `Reading`, `Evidence` | `readings/model.py` | Lectura inmutable: regla, key estable, instante, vuelta, pilotos, evidencia y texto |
+| Configuración | `config/readings.toml`, `config/mensajes_es.toml` | Umbrales (sin calibrar) y plantillas |
+
+El motor se engancha al replay por el protocolo `Observer` (`reset` y `process`): `Replay(engine=...)` le pasa cada evento emitido y `Step.readings` trae lo que produjo. Es causal (una regla no mira hacia adelante) y su estado es un fold de los eventos, como `RaceState`: tras un seek el replay lo reinicia si hace falta y re-pliega en silencio los eventos salteados, así que produce las mismas lecturas que la reproducción continua y no repite las anteriores. Un test lo verifica sobre tres carreras reales.
+
 ## Arquitectura objetivo en la nube (fase 3)
 
 Pendiente del ADR de nube (H6). La opción recomendada es AWS con Terraform. La ingesta en vivo corre en un nodo propio con IP residencial, porque F1 bloquea rangos de IP de cloud; la nube solo distribuye archivos.

@@ -36,6 +36,7 @@ Todo se ejecuta por make. La columna "Desde" indica cuándo existe cada target.
 | make fetch SESSION=<id>            | Descarga y cachea una sesión de OpenF1         | Disponible |
 | make normalize SESSION=<id>        | Genera eventos canónicos                       | Disponible |
 | make replay SESSION=<id> SPEED=<n> | Reproduce por consola (NOWAIT=1, FROM_LAP=<n>) | Disponible |
+| make fixture SESSION=<id> DESDE= HASTA= LAPS=<a>-<b> | Recorta el crudo a una ventana (fixtures/sessions) | Disponible |
 | make golden SESSION=<id>           | Regenera la salida esperada (revisar el diff)  | H1 t8      |
 | docker compose up                  | core en :8000, web en :4321                    | H3         |
 
@@ -63,7 +64,7 @@ Todo se ejecuta por make. La columna "Desde" indica cuándo existe cada target.
 | cambio-documentado  | Cerrar cualquier cambio con docs, CHANGELOG y estado | Activo   |
 | nuevo-adr           | Registrar una decisión                               | Activo   |
 | sesion-replay       | Descargar, recortar y reproducir sesiones; golden    | Activo   |
-| nueva-lectura       | Agregar o ajustar una regla del motor                | H1 t7    |
+| nueva-lectura       | Agregar o ajustar una regla del motor                | Activo   |
 | fuente-de-datos     | Fuente nueva o cambio de esquema del feed            | Activo   |
 | ui-componente       | Vistas y componentes con los tokens del proyecto     | H3       |
 | post-carrera        | Generar y revisar el análisis de una sesión (manual) | H4       |

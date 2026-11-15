@@ -33,7 +33,16 @@ Adaptadores por fuente, modelo canónico v1, reloj de replay, motor de lecturas,
 - El orden de emisión es el de `sort_key`: el replay valida, no reordena. Los eventos con el mismo `t` salen en un lote.
 - El seek deja el estado igual a reproducir hasta ese instante y no emite lo salteado. La posición inicial es `SessionMeta.start`.
 - Vuelta N = vuelta en curso del líder = máximo de vueltas completadas + 1, fija desde la bandera a cuadros. Coincide con el `lap` de los mensajes de la FIA. El líder que se nombra es el de P1.
-- Tests con `FakeClock`, sin esperas reales. Detalle en docs/arquitectura.md#reloj-de-replay.
+- Tests con `FakeClock`, sin esperas reales. `Replay` acepta un `Observer` (el motor de lecturas) que se reinicia y re-pliega con el seek. Detalle en docs/arquitectura.md#reloj-de-replay.
+
+## Motor de lecturas
+
+- `apexpulse.readings`: `Engine` + reglas `cheap_stop` (parada real bajo SC/VSC) y `undercut_window`. `make replay` imprime las lecturas (`LECTURA`). Detalle y umbrales en docs/lecturas.md.
+- Causal y determinístico; el estado del motor es un fold de los eventos y se reinicia y re-pliega con el seek, igual que `RaceState`. Se engancha al replay por el protocolo `Observer`.
+- Parada real: `stationary_s` no nulo, o stint nuevo en la vuelta de la pasada o la siguiente con juego de neumáticos distinto (confirmación diferida que vence sin emitir). OpenF1 abre el stint en la vuelta de la pasada (Mónaco) o en la siguiente (São Paulo) y bajo SC parte uno por pasada: no alcanza solo `stop_duration` ni solo el stint.
+- Umbrales en config/readings.toml, todos `calibrated = false`. Textos en config/mensajes_es.toml: sin afirmaciones de ahorro de tiempo. La regla de undercut no conoce las vueltas restantes.
+- OpenF1 publica el VSC como `VSC DEPLOYED` y `VSC ENDING`.
+- Fixtures recortados con `make fixture` (arrastra el último registro previo de cada piloto): Mónaco (SC), São Paulo (vueltas 12 a 20) y Australia (tres VSC).
 
 ## Decisiones vigentes
 

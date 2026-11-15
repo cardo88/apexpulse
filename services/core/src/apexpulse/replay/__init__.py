@@ -2,7 +2,7 @@
 
 from apexpulse.replay.clock import Clock, FakeClock, SystemClock
 from apexpulse.replay.console import ConsolePrinter
-from apexpulse.replay.player import Replay, ReplayError, Step
+from apexpulse.replay.player import Observer, Replay, ReplayError, Step
 from apexpulse.replay.state import CarState, RaceState
 
 __all__ = [
@@ -10,6 +10,7 @@ __all__ = [
     "Clock",
     "ConsolePrinter",
     "FakeClock",
+    "Observer",
     "RaceState",
     "Replay",
     "ReplayError",

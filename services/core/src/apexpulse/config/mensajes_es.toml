@@ -1,0 +1,27 @@
+# Textos de las lecturas en español neutro, presente y voz activa. Códigos de piloto de 3 letras,
+# coma decimal con unidad. Los textos no afirman ahorros de tiempo: solo describen lo observado.
+# Cambiar un texto cambia la salida: pasa por golden tests (AGENTS.md).
+
+[cheap_stop]
+detenido = "{piloto} para bajo {estado} en la vuelta {vuelta}: {detenido} s detenido{carril}."
+cambio = "{piloto} cambia neumáticos bajo {estado} en la vuelta {vuelta}: {compuesto} con {edad} vueltas de uso{carril}."
+
+[undercut_window]
+abierta = "{perseguidor} está a {gap} s de {rival} desde hace {vueltas} vueltas, con neumáticos {compuesto_p} de {edad_p} vueltas contra {compuesto_r} de {edad_r}: ventana de undercut."
+
+[fragmentos]
+carril = " y {lane_s} s en pit lane"
+
+[estados]
+SC = "Safety Car"
+SC_ENDING = "Safety Car"
+VSC = "VSC"
+VSC_ENDING = "VSC"
+
+[compuestos]
+SOFT = "blandos"
+MEDIUM = "medios"
+HARD = "duros"
+INTERMEDIATE = "intermedios"
+WET = "de lluvia"
+UNKNOWN = "desconocidos"

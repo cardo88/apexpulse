@@ -93,9 +93,9 @@ El primero presenta al auto 44 al inicio de la sesión; el segundo abre el SC de
 stateDiagram-v2
   [*] --> GREEN: SESSION STARTED
   GREEN --> SC: SAFETY CAR DEPLOYED
-  GREEN --> VSC: VIRTUAL SAFETY CAR DEPLOYED
+  GREEN --> VSC: VSC DEPLOYED
   SC --> SC_ENDING: SAFETY CAR IN THIS LAP
-  VSC --> VSC_ENDING: VIRTUAL SAFETY CAR ENDING
+  VSC --> VSC_ENDING: VSC ENDING
   SC_ENDING --> GREEN: TRACK CLEAR o el líder empieza la vuelta siguiente
   VSC_ENDING --> GREEN: TRACK CLEAR o el líder empieza la vuelta siguiente
   SC_ENDING --> SC: SAFETY CAR DEPLOYED
@@ -108,7 +108,7 @@ stateDiagram-v2
 - Un `TRACK CLEAR` durante SC, VSC o rojo no cambia el estado. En Mónaco 2026 hay uno a las 15:00:48, con la carrera todavía suspendida; el rojo termina recién con `SESSION STARTED` a las 15:12:00.
 - La bandera roja de OpenF1 llega como `category=Other` y `message="RED FLAG - RACE SUSPENDED"`, sin `flag=RED`; por eso también cuenta `SESSION ABORTED`.
 - Las banderas verdes de pista anteriores a la largada (`GREEN LIGHT - PIT EXIT OPEN`) se ignoran.
-- Los textos del VSC siguen la convención de la FIA; todavía no se verificaron contra una sesión 2026 con VSC.
+- OpenF1 publica el VSC como `VSC DEPLOYED` y `VSC ENDING` con `category=SafetyCar` (14 de las 20 carreras 2026 hasta el 2026-11-08 tienen al menos un VSC). Se aceptan también los textos largos de la FIA, `VIRTUAL SAFETY CAR DEPLOYED` y `VIRTUAL SAFETY CAR ENDING`. Los mensajes de sanción por infracción bajo VSC (`... - VSC INFRINGEMENT`) tienen `category=Other` y no cambian el estado. Antes de este cambio solo se reconocía el texto largo y el estado `VSC` no se derivaba nunca.
 
 La derivación vive en `sources/trackstatus.py` y la puede reutilizar cualquier fuente que tenga mensajes de dirección de carrera.
 
