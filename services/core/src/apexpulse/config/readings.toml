@@ -28,6 +28,12 @@ min_tyre_age_laps = 10
 # Vueltas seguidas con las condiciones vigentes antes de emitir. Evita avisar por un
 # acercamiento de una vuelta (por ejemplo, un auto doblado que se interpone).
 confirm_laps = 2
+# Vuelta mínima del perseguidor (última vuelta completada) para evaluar. Guarda, no umbral de
+# ritmo: en las primeras vueltas el intervalo corto lo explica la largada, no el ritmo, y un
+# juego usado puede cumplir la edad mínima desde la vuelta 3. Con juegos nuevos la edad mínima
+# ya deja la primera lectura en la vuelta 12, así que con 5 no cambia la salida de las tres
+# carreras de prueba (1 la desactiva). Sin calibrar.
+min_lap = 5
 # Sin parada propia ni del rival en las últimas N vueltas: un juego recién puesto no tiene el
 # desgaste que hace útil el undercut, y tras una parada el intervalo todavía se está asentando.
 recent_stop_laps = 3

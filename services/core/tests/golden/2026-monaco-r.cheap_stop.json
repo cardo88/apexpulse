@@ -1,0 +1,141 @@
+[
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:44:60",
+    "t": "2026-06-07T14:21:26.073000+00:00",
+    "lap": 61,
+    "drivers": [44],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "SC"},
+      {"name": "vuelta_propia", "value": 60, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-06-07T14:21:26.073000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-06-07T14:21:26.073000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 31.227, "unit": "s"},
+      {"name": "detenido_s", "value": 8.6, "unit": "s"}
+    ],
+    "text": "HAM para bajo Safety Car en la vuelta 61: 8,6 s detenido y 31,2 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:14:58",
+    "t": "2026-06-07T14:21:34.338000+00:00",
+    "lap": 61,
+    "drivers": [14],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "SC"},
+      {"name": "vuelta_propia", "value": 58, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-06-07T14:21:34.338000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-06-07T14:21:34.338000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 26.334, "unit": "s"},
+      {"name": "detenido_s", "value": 4.3, "unit": "s"}
+    ],
+    "text": "ALO para bajo Safety Car en la vuelta 61: 4,3 s detenido y 26,3 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:5:58",
+    "t": "2026-06-07T14:22:10.057000+00:00",
+    "lap": 61,
+    "drivers": [5],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "SC"},
+      {"name": "vuelta_propia", "value": 58, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-06-07T14:22:10.057000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-06-07T14:22:10.057000+00:00"},
+      {"name": "criterio", "value": "stint"},
+      {"name": "pit_lane_s", "value": 20.3, "unit": "s"},
+      {"name": "compuesto", "value": "SOFT"},
+      {"name": "edad_neumatico", "value": 0, "unit": "vueltas"}
+    ],
+    "text": "BOR cambia neumáticos bajo Safety Car en la vuelta 61: blandos con 0 vueltas de uso y 20,3 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:12:61",
+    "t": "2026-06-07T14:22:39.778000+00:00",
+    "lap": 62,
+    "drivers": [12],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "SC"},
+      {"name": "vuelta_propia", "value": 61, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-06-07T14:22:39.778000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-06-07T14:22:39.778000+00:00"},
+      {"name": "criterio", "value": "stint"},
+      {"name": "pit_lane_s", "value": 26.8, "unit": "s"},
+      {"name": "compuesto", "value": "SOFT"},
+      {"name": "edad_neumatico", "value": 4, "unit": "vueltas"}
+    ],
+    "text": "ANT cambia neumáticos bajo Safety Car en la vuelta 62: blandos con 4 vueltas de uso y 26,8 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:63:60",
+    "t": "2026-06-07T14:22:50.098000+00:00",
+    "lap": 62,
+    "drivers": [63],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "SC"},
+      {"name": "vuelta_propia", "value": 60, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-06-07T14:22:50.098000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-06-07T14:22:50.098000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 35.258, "unit": "s"},
+      {"name": "detenido_s", "value": 5.5, "unit": "s"}
+    ],
+    "text": "RUS para bajo Safety Car en la vuelta 62: 5,5 s detenido y 35,3 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:11:59",
+    "t": "2026-06-07T14:23:51.502000+00:00",
+    "lap": 62,
+    "drivers": [11],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "SC"},
+      {"name": "vuelta_propia", "value": 59, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-06-07T14:23:51.502000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-06-07T14:23:51.502000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 26.005, "unit": "s"},
+      {"name": "detenido_s", "value": 3.9, "unit": "s"}
+    ],
+    "text": "PER para bajo Safety Car en la vuelta 62: 3,9 s detenido y 26,0 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:5:59",
+    "t": "2026-06-07T14:24:06.829000+00:00",
+    "lap": 62,
+    "drivers": [5],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "SC"},
+      {"name": "vuelta_propia", "value": 59, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-06-07T14:24:06.829000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-06-07T14:24:06.829000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 24.824, "unit": "s"},
+      {"name": "detenido_s", "value": 2.5, "unit": "s"}
+    ],
+    "text": "BOR para bajo Safety Car en la vuelta 62: 2,5 s detenido y 24,8 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:30:66",
+    "t": "2026-06-07T14:33:11.784000+00:00",
+    "lap": 67,
+    "drivers": [30],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "SC"},
+      {"name": "vuelta_propia", "value": 66, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-06-07T14:33:11.784000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-06-07T14:33:11.784000+00:00"},
+      {"name": "criterio", "value": "stint"},
+      {"name": "pit_lane_s", "value": 20.3, "unit": "s"},
+      {"name": "compuesto", "value": "SOFT"},
+      {"name": "edad_neumatico", "value": 6, "unit": "vueltas"}
+    ],
+    "text": "LAW cambia neumáticos bajo Safety Car en la vuelta 67: blandos con 6 vueltas de uso y 20,3 s en pit lane."
+  }
+]

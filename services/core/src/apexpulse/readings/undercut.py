@@ -8,7 +8,9 @@ Guardas que no dependen de calibración (descartan datos que no significan lo qu
 - el intervalo del perseguidor es numérico: un auto doblado no tiene `interval_s`, y si el rival
   está doblado la distancia no es en pista;
 - ni el perseguidor ni el rival están en vuelta de entrada o de salida de boxes;
-- ni el perseguidor ni el rival pararon en las últimas `recent_stop_laps` vueltas.
+- ni el perseguidor ni el rival pararon en las últimas `recent_stop_laps` vueltas;
+- el perseguidor completó al menos la vuelta `min_lap` (guarda configurable contra el
+  comienzo de la carrera, donde el intervalo corto lo explica la largada).
 
 Condiciones que sí dependen de los umbrales de readings.toml (no calibrados): pista en verde,
 `interval_s` de hasta `max_gap_s` y neumático del perseguidor con `min_tyre_age_laps` vueltas o más.
@@ -52,7 +54,7 @@ class Evaluation:
 
 class UndercutWindow:
     id = "undercut_window"
-    version = 1
+    version = 2  # v2: guarda min_lap y evidencia vuelta_perseguidor
 
     def __init__(self, config: UndercutConfig, messages: Messages) -> None:
         self._config = config
@@ -86,7 +88,8 @@ class UndercutWindow:
             and (otro.interval is None or otro.interval.laps_down is None)
         )
         guards_ok = (
-            numerico
+            lap >= cfg.min_lap
+            and numerico
             and not tracker.in_pit_lap(chaser, state)
             and not tracker.in_pit_lap(rival, state)
             and not tracker.recent_stop(chaser, state, cfg.recent_stop_laps)
@@ -147,6 +150,7 @@ class UndercutWindow:
                     Evidence("gap_s", ev.gap_s, "s"),
                     Evidence("vueltas_seguidas", n, "vueltas"),
                     Evidence("posicion_perseguidor", auto.position or 0),
+                    Evidence("vuelta_perseguidor", ev.lap, "vuelta"),
                     Evidence("edad_perseguidor", ev.chaser_age, "vueltas"),
                     Evidence("compuesto_perseguidor", auto.stint.compound.value),
                     Evidence("edad_rival", ev.rival_age, "vueltas"),

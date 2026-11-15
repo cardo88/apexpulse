@@ -8,6 +8,7 @@ vuelta 60 con paradas reales y pasadas por el pit lane, segundo SC en la 66, ban
 from __future__ import annotations
 
 import json
+import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -34,11 +35,12 @@ from apexpulse.sources import Normalized, OpenF1Adapter, SchemaError
 from apexpulse.sources.openf1 import RATE_LIMITS
 from apexpulse.sources.ratelimit import RateLimiter
 from apexpulse.sources.rawstore import read_jsonl_zst
-from conftest import FakeClock, FakeOpenF1
+from conftest import OPENF1_MONACO, FakeClock, FakeOpenF1, normalizar_fixture
 
 MONACO = SessionId.parse("2026-monaco-r")
 SAO_PAULO = SessionId.parse("2026-sao-paulo-r")
 AHORA = datetime(2026, 11, 14, 18, 0, tzinfo=UTC)
+MONACO_FIXTURE = OPENF1_MONACO
 
 
 def _adapter(openf1: FakeOpenF1, clock: FakeClock) -> OpenF1Adapter:
@@ -253,3 +255,29 @@ def test_cli_normalize(
 def test_cli_normalize_sin_crudo(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["normalize", "2026-monaco-r", "--data-dir", str(tmp_path)]) == 1
     assert "make fetch SESSION=2026-monaco-r" in capsys.readouterr().err
+
+
+def test_normalizador_avisa_cuando_omite_un_stint_sin_tyre_age_at_start(
+    tmp_path: Path, clock: FakeClock
+) -> None:
+    """Un stint sin `tyre_age_at_start` se omite y el aviso dice cuántos y cuál (por ejemplo)."""
+    origen = tmp_path / "fixture"
+    shutil.copytree(MONACO_FIXTURE, origen)
+    archivo = origen / "stints.json"
+    filas = json.loads(archivo.read_text(encoding="utf-8"))
+    total = len(filas)
+    for fila in filas[:3]:
+        fila["tyre_age_at_start"] = None
+    archivo.write_text(json.dumps(filas), encoding="utf-8")
+
+    resultado = normalizar_fixture(origen, "2026-monaco-r", tmp_path / "raw")
+
+    avisos = [a for a in resultado.warnings if a.startswith("stints: sin tyre_age_at_start")]
+    assert len(avisos) == 1
+    assert "omitidos: 3 (por ejemplo piloto" in avisos[0]
+    assert sum(isinstance(e, StintStarted) for e in resultado.events) == total - 3
+
+
+def test_normalizador_no_avisa_de_tyre_age_si_el_crudo_la_trae(tmp_path: Path) -> None:
+    resultado = normalizar_fixture(MONACO_FIXTURE, "2026-monaco-r", tmp_path / "raw")
+    assert not [a for a in resultado.warnings if "tyre_age_at_start" in a]

@@ -27,6 +27,7 @@ class UndercutConfig:
     min_tyre_age_laps: int
     confirm_laps: int
     recent_stop_laps: int
+    min_lap: int
 
 
 @dataclass(frozen=True)
@@ -72,13 +73,14 @@ def load_config(datos: dict[str, Any] | None = None) -> ReadingsConfig:
             "min_tyre_age_laps": int,
             "confirm_laps": int,
             "recent_stop_laps": int,
+            "min_lap": int,
         },
     )
     if s["confirm_timeout_laps"] < 1:
         raise ConfigError("readings.toml [stops] confirm_timeout_laps: mínimo 1")
     if u["max_gap_s"] <= 0:
         raise ConfigError("readings.toml [undercut_window] max_gap_s: tiene que ser mayor que 0")
-    for clave in ("min_tyre_age_laps", "confirm_laps"):
+    for clave in ("min_tyre_age_laps", "confirm_laps", "min_lap"):
         if u[clave] < 1:
             raise ConfigError(f"readings.toml [undercut_window] {clave}: mínimo 1")
     if u["recent_stop_laps"] < 0:
@@ -91,6 +93,7 @@ def load_config(datos: dict[str, Any] | None = None) -> ReadingsConfig:
             u["min_tyre_age_laps"],
             u["confirm_laps"],
             u["recent_stop_laps"],
+            u["min_lap"],
         ),
     )
 

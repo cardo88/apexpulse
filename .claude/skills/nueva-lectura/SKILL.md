@@ -17,8 +17,9 @@ de parada real y el estado de calibración de cada umbral están en docs/lectura
 - Umbrales: services/core/src/apexpulse/config/readings.toml, con su carga y validación en
   readings/config.py.
 - Tests: services/core/tests/test_readings.py.
-- Golden: llega en H1 tarea 8 (`make golden`). Hasta entonces los cambios de texto o de umbral
-  se prueban en test_readings.py con textos exactos.
+- Golden: services/core/tests/golden/<sesion>.<regla>.json, con tests/test_golden.py. Se
+  regraba con `make golden-update` revisando el diff. Una regla con umbrales sin calibrar
+  se cubre con propiedades (tests/test_propiedades.py) y recién tiene golden al calibrar.
 - Documentación: docs/lecturas.md.
 
 ## Contrato
@@ -62,7 +63,8 @@ líder que describe el texto), drivers, evidence (nombre, valor y unidad) y text
    `make fixture` (skill sesion-replay), que arrastra el último registro previo de cada piloto.
 6. Tests: una rama por condición y por guarda con eventos sintéticos, el caso real con texto
    exacto, y el test de seek (mismas lecturas que la reproducción continua, sin repetir las
-   anteriores). Correr `make replay SESSION=<id> NOWAIT=1` y leer las líneas LECTURA.
+   anteriores). Sumar el golden de la regla (o las propiedades, si sus umbrales no están
+   calibrados) y correr `make golden-update` solo después de leer la salida. Correr `make replay SESSION=<id> NOWAIT=1` y leer las líneas LECTURA.
 7. Documentar en docs/lecturas.md: condición, umbrales con su estado de calibración,
    plantilla y un ejemplo real con vuelta y sesión.
 8. Cerrar con el skill cambio-documentado.

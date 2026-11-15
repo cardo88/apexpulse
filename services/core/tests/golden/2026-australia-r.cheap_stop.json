@@ -1,0 +1,258 @@
+[
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:1:46",
+    "t": "2026-03-08T04:19:43.406000+00:00",
+    "lap": 12,
+    "drivers": [1],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 46, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:19:43.406000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:19:43.406000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 18.266, "unit": "s"},
+      {"name": "detenido_s", "value": 2.9, "unit": "s"}
+    ],
+    "text": "NOR para bajo VSC en la vuelta 12: 2,9 s detenido y 18,3 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:10:46",
+    "t": "2026-03-08T04:19:54.135000+00:00",
+    "lap": 12,
+    "drivers": [10],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 46, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:19:54.135000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:19:54.135000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 18.672, "unit": "s"},
+      {"name": "detenido_s", "value": 3.1, "unit": "s"}
+    ],
+    "text": "GAS para bajo VSC en la vuelta 12: 3,1 s detenido y 18,7 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:31:46",
+    "t": "2026-03-08T04:19:56.923000+00:00",
+    "lap": 12,
+    "drivers": [31],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 46, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:19:56.923000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:19:56.923000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 18.57, "unit": "s"},
+      {"name": "detenido_s", "value": 2.8, "unit": "s"}
+    ],
+    "text": "OCO para bajo VSC en la vuelta 12: 2,8 s detenido y 18,6 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:55:46",
+    "t": "2026-03-08T04:20:04.992000+00:00",
+    "lap": 12,
+    "drivers": [55],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 46, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:20:04.992000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:20:04.992000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 19.859, "unit": "s"},
+      {"name": "detenido_s", "value": 4.1, "unit": "s"}
+    ],
+    "text": "SAI para bajo VSC en la vuelta 12: 4,1 s detenido y 19,9 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:30:46",
+    "t": "2026-03-08T04:20:20.833000+00:00",
+    "lap": 12,
+    "drivers": [30],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 46, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:20:20.833000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:20:20.833000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 19.112, "unit": "s"},
+      {"name": "detenido_s", "value": 3.3, "unit": "s"}
+    ],
+    "text": "LAW para bajo VSC en la vuelta 12: 3,3 s detenido y 19,1 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:18:11",
+    "t": "2026-03-08T04:20:37.821000+00:00",
+    "lap": 12,
+    "drivers": [18],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 11, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:20:37.821000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:20:37.821000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 36.686, "unit": "s"},
+      {"name": "detenido_s", "value": 16.9, "unit": "s"}
+    ],
+    "text": "STR para bajo VSC en la vuelta 12: 16,9 s detenido y 36,7 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:14:11",
+    "t": "2026-03-08T04:20:48.545000+00:00",
+    "lap": 12,
+    "drivers": [14],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 11, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:20:48.545000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:20:48.545000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 25.895, "unit": "s"},
+      {"name": "detenido_s", "value": 10.0, "unit": "s"}
+    ],
+    "text": "ALO para bajo VSC en la vuelta 12: 10,0 s detenido y 25,9 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:63:12",
+    "t": "2026-03-08T04:21:15.981000+00:00",
+    "lap": 13,
+    "drivers": [63],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 12, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:21:15.981000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:21:15.981000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 17.794, "unit": "s"},
+      {"name": "detenido_s", "value": 2.3, "unit": "s"}
+    ],
+    "text": "RUS para bajo VSC en la vuelta 13: 2,3 s detenido y 17,8 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:12:12",
+    "t": "2026-03-08T04:22:00.272000+00:00",
+    "lap": 13,
+    "drivers": [12],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 12, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:22:00.272000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:22:00.272000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 20.985, "unit": "s"},
+      {"name": "detenido_s", "value": 2.5, "unit": "s"}
+    ],
+    "text": "ANT para bajo VSC en la vuelta 13: 2,5 s detenido y 21,0 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:23:12",
+    "t": "2026-03-08T04:22:01.303000+00:00",
+    "lap": 13,
+    "drivers": [23],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 12, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:22:01.303000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:22:01.303000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 18.118, "unit": "s"},
+      {"name": "detenido_s", "value": 2.7, "unit": "s"}
+    ],
+    "text": "ALB para bajo VSC en la vuelta 13: 2,7 s detenido y 18,1 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:87:18",
+    "t": "2026-03-08T04:30:50.106000+00:00",
+    "lap": 19,
+    "drivers": [87],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 18, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:30:50.106000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:30:50.106000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 18.774, "unit": "s"},
+      {"name": "detenido_s", "value": 3.3, "unit": "s"}
+    ],
+    "text": "BEA para bajo VSC en la vuelta 19: 3,3 s detenido y 18,8 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:41:18",
+    "t": "2026-03-08T04:31:07.099000+00:00",
+    "lap": 19,
+    "drivers": [41],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 18, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:31:07.099000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:31:07.099000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 18.506, "unit": "s"},
+      {"name": "detenido_s", "value": 2.4, "unit": "s"}
+    ],
+    "text": "LIN para bajo VSC en la vuelta 19: 2,4 s detenido y 18,5 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:3:18",
+    "t": "2026-03-08T04:31:12.593000+00:00",
+    "lap": 19,
+    "drivers": [3],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 18, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:31:12.593000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:31:12.593000+00:00"},
+      {"name": "criterio", "value": "stint"},
+      {"name": "pit_lane_s", "value": 19.07, "unit": "s"},
+      {"name": "compuesto", "value": "MEDIUM"},
+      {"name": "edad_neumatico", "value": 0, "unit": "vueltas"}
+    ],
+    "text": "VER cambia neumáticos bajo VSC en la vuelta 19: medios con 0 vueltas de uso y 19,1 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:11:18",
+    "t": "2026-03-08T04:31:56.620000+00:00",
+    "lap": 19,
+    "drivers": [11],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC"},
+      {"name": "vuelta_propia", "value": 18, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:31:56.620000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:31:56.620000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 21.371, "unit": "s"},
+      {"name": "detenido_s", "value": 5.5, "unit": "s"}
+    ],
+    "text": "PER para bajo VSC en la vuelta 19: 5,5 s detenido y 21,4 s en pit lane."
+  },
+  {
+    "rule": "cheap_stop",
+    "key": "cheap_stop:5:18",
+    "t": "2026-03-08T04:53:09.209000+00:00",
+    "lap": 34,
+    "drivers": [5],
+    "evidence": [
+      {"name": "estado_de_pista", "value": "VSC_ENDING"},
+      {"name": "vuelta_propia", "value": 18, "unit": "vuelta"},
+      {"name": "instante_pasada", "value": "2026-03-08T04:53:09.209000+00:00"},
+      {"name": "instante_confirmacion", "value": "2026-03-08T04:53:09.209000+00:00"},
+      {"name": "criterio", "value": "detencion"},
+      {"name": "pit_lane_s", "value": 22.619, "unit": "s"},
+      {"name": "detenido_s", "value": 5.2, "unit": "s"}
+    ],
+    "text": "BOR para bajo VSC en la vuelta 34: 5,2 s detenido y 22,6 s en pit lane."
+  }
+]

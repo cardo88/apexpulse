@@ -37,7 +37,7 @@ Todo se ejecuta por make. La columna "Desde" indica cuándo existe cada target.
 | make normalize SESSION=<id>        | Genera eventos canónicos                       | Disponible |
 | make replay SESSION=<id> SPEED=<n> | Reproduce por consola (NOWAIT=1, FROM_LAP=<n>) | Disponible |
 | make fixture SESSION=<id> DESDE= HASTA= LAPS=<a>-<b> | Recorta el crudo a una ventana (fixtures/sessions) | Disponible |
-| make golden SESSION=<id>           | Regenera la salida esperada (revisar el diff)  | H1 t8      |
+| make golden-update [SESSION=<id>]  | Regraba tests/golden (revisar el diff)         | Disponible |
 | docker compose up                  | core en :8000, web en :4321                    | H3         |
 
 ## Reglas no negociables

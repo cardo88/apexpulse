@@ -57,9 +57,9 @@ def _t(segundos: float) -> datetime:
 class Mesa:
     """Un `RaceState` y un `Engine` alimentados evento por evento, como hace el replay."""
 
-    def __init__(self) -> None:
+    def __init__(self, engine: Engine | None = None) -> None:
         self.state = RaceState()
-        self.engine = Engine.default()
+        self.engine = Engine.default() if engine is None else engine
         self.lecturas: list[Reading] = []
 
     def feed(self, *eventos: Event) -> list[Reading]:
@@ -324,6 +324,37 @@ def test_undercut_se_abre_tras_dos_vueltas_con_las_condiciones() -> None:
     )
 
 
+def _mesa_con_minimo(minimo: int) -> Mesa:
+    datos = _datos(undercut_window__min_lap=minimo)
+    mesa = Mesa(Engine(load_config(datos), load_messages()))
+    mesa.feed(_piloto(1, "HAM"), _piloto(2, "ANT"), _stint(0, 1, 1, 1), _stint(0, 2, 1, 1))
+    mesa.feed(
+        PositionChanged(t=_t(0), driver=2, position=1),
+        PositionChanged(t=_t(0), driver=1, position=2),
+    )
+    return mesa
+
+
+def test_undercut_la_vuelta_minima_retrasa_la_lectura_hasta_cumplir_la_racha() -> None:
+    """Con min_lap 20 la racha empieza en la vuelta 20 y se confirma en la 21; no se pierde."""
+    mesa = _mesa_con_minimo(20)
+    emitidas = [bool(_vuelta_de_los_dos(mesa, n)) for n in range(1, 31)]
+    assert emitidas.index(True) == 20  # vuelta 21
+    assert sum(emitidas) == 1
+    (lectura,) = _lecturas_de_undercut(mesa)
+    assert lectura.evidence_value("vuelta_perseguidor") == 21
+    assert lectura.evidence_value("vueltas_seguidas") == 2
+
+
+def test_undercut_la_vuelta_minima_no_cambia_nada_si_ya_se_cumple() -> None:
+    con_5 = _carrera_de_dos()
+    con_1 = _mesa_con_minimo(1)
+    for n in range(1, 15):
+        _vuelta_de_los_dos(con_5, n)
+        _vuelta_de_los_dos(con_1, n)
+    assert con_5.lecturas == con_1.lecturas != []
+
+
 def test_undercut_ignora_el_intervalo_de_un_auto_doblado() -> None:
     mesa = _carrera_de_dos()
     for n in range(1, 15):
@@ -426,6 +457,7 @@ def test_config_empaquetada_esta_marcada_como_no_calibrada() -> None:
     assert config.undercut.calibrated is False
     assert (config.undercut.max_gap_s, config.undercut.min_tyre_age_laps) == (2.0, 10)
     assert (config.undercut.confirm_laps, config.undercut.recent_stop_laps) == (2, 3)
+    assert config.undercut.min_lap == 5
     assert config.stops.confirm_timeout_laps == 2
 
 
@@ -438,6 +470,7 @@ def _datos(**cambios: object) -> dict[str, dict[str, object]]:
             "min_tyre_age_laps": 10,
             "confirm_laps": 2,
             "recent_stop_laps": 3,
+            "min_lap": 5,
         },
     }
     for ruta, valor in cambios.items():
@@ -454,6 +487,8 @@ def _datos(**cambios: object) -> dict[str, dict[str, object]]:
         {"undercut_window__min_tyre_age_laps": 0},
         {"undercut_window__confirm_laps": 0},
         {"undercut_window__recent_stop_laps": -1},
+        {"undercut_window__min_lap": 0},
+        {"undercut_window__min_lap": 5.0},
         {"undercut_window__max_gap_s": "2.0"},
     ],
 )

@@ -84,7 +84,7 @@ Un campo obligatorio puede venir en `null` (por ejemplo, `lap_duration` de la vu
 
 ### Tests
 
-`services/core/tests/contract/test_openf1.py` usa las respuestas mínimas de `fixtures/contract/2026-sao-paulo-r/openf1/` (tres registros por endpoint) servidas con `httpx.MockTransport`. `test_openf1_normalize.py`, `test_replay.py` y `test_readings.py` usan los recortes de `fixtures/sessions/2026-monaco-r/openf1/` (tramo del SC, las paradas bajo SC y la bandera roja), `fixtures/sessions/2026-sao-paulo-r/openf1/` (primera tanda de paradas, vueltas 12 a 20) y `fixtures/sessions/2026-australia-r/openf1/` (tres VSC, vueltas 12 a 35); `test_readings.py` usa además `fixtures/contract/2026-sao-paulo-r-paradas/openf1/` (carrera completa solo con `pit`, `stints`, `laps` y `race_control`): descargan los endpoints contra OpenF1 simulado y verifican la normalización. `tests/conftest.py` bloquea los sockets: un test que intente usar la red falla. Diagnóstico de errores en [runbook.md](runbook.md#fuentes-de-datos).
+`services/core/tests/contract/test_openf1.py` usa las respuestas mínimas de `fixtures/contract/2026-sao-paulo-r/openf1/` (tres registros por endpoint) servidas con `httpx.MockTransport`. `test_openf1_normalize.py`, `test_replay.py` y `test_readings.py` usan los recortes de `fixtures/sessions/2026-monaco-r/openf1/` (tramo del SC, las paradas bajo SC y la bandera roja), `fixtures/sessions/2026-sao-paulo-r/openf1/` (primera tanda de paradas, vueltas 12 a 20) y `fixtures/sessions/2026-australia-r/openf1/` (tres VSC, vueltas 12 a 35); `test_golden.py`, `test_propiedades.py` y `test_pipeline.py` corren el camino completo sobre los tres recortes de `sessions/`; `test_readings.py` usa además `fixtures/contract/2026-sao-paulo-r-paradas/openf1/` (carrera completa solo con `pit`, `stints`, `laps` y `race_control`): descargan los endpoints contra OpenF1 simulado y verifican la normalización. `tests/conftest.py` bloquea los sockets: un test que intente usar la red falla. Diagnóstico de errores en [runbook.md](runbook.md#fuentes-de-datos).
 
 ### Recorte de fixtures
 
@@ -111,6 +111,10 @@ OpenF1 publica el VSC como `VSC DEPLOYED` y `VSC ENDING` con `category=SafetyCar
 ### Paradas y stints
 
 El campo `stop_duration` de `pit` puede faltar en paradas reales (5 de 58 en São Paulo, 54 de 86 en Mónaco, la mayoría pasadas por el pit lane bajo SC y bandera roja). `lap_start` del stint nuevo coincide con `lap_number` de la pasada en Mónaco y es la vuelta siguiente en São Paulo, y bajo SC OpenF1 abre un stint por cada pasada aunque el juego de neumáticos no cambie. Una regla que necesite saber si hubo cambio de neumáticos no puede usar solo `stop_duration` ni solo el número de stint.
+
+`lap_number` de `pit` tampoco es siempre confiable: en Australia 10 de 26 pasadas traen una vuelta que no es la del piloto en ese instante (46 para las cinco paradas bajo el VSC de la vuelta 12; en Mónaco y São Paulo, 0 de 86 y 0 de 58). El normalizador lo copia tal cual a `PitLane.lap`; afecta la clave y la evidencia `vuelta_propia` de `cheap_stop`, y la guarda de paradas recientes de `undercut_window`. Pendiente de H2: derivar la vuelta desde `laps` por el instante de la pasada.
+
+Lo que el normalizador omite se informa como aviso (`AVISO:` en `make normalize`). Medido sobre las carreras completas: stints sin `tyre_age_at_start`, 0 en Mónaco, São Paulo y Australia (aviso cubierto por un test de contrato); stints cuya vuelta de inicio no está en `laps`, 1 en Australia (piloto 27, stint 1); vueltas sin tiempo ni vuelta siguiente, 7 en Mónaco, 2 en São Paulo y 3 en Australia, más 2 sin `date_start` en Australia.
 
 ## Archivo estático de F1 Live Timing
 

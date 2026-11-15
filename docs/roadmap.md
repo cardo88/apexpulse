@@ -40,7 +40,7 @@ Hitos de ApexPulse y su estado. Cada hito cierra con una versión etiquetada y u
 
 | Hito | Entregable | Criterio de cierre | Estado |
 |------|------------|--------------------|--------|
-| H1. Primera lectura | v0.1.0: docs y skills base, ingesta OpenF1, modelo canónico, replay por consola, 2 reglas | `make replay SESSION=2026-sao-paulo-r SPEED=30` imprime lecturas en español con vuelta y evidencia; CI en verde | En curso |
+| H1. Primera lectura | v0.1.0: docs y skills base, ingesta OpenF1, modelo canónico, replay por consola, 2 reglas | `make replay SESSION=2026-sao-paulo-r SPEED=30` imprime lecturas en español con vuelta y evidencia; CI en verde | Cerrado; la etiqueta v0.1.0 la corta el autor |
 | H2. Motor v1 | v0.2.0: 5 reglas, adaptador del archivo estático, golden tests sobre 3 carreras | Cada regla con un caso real verificado y documentado en docs/lecturas.md | Pendiente |
 | H3. Vista "En carrera" | v0.3.0: API con SSE, web mobile primero, identidad visual v1 | 150 KB o menos en la carga inicial; replay fluido a x30 en un teléfono de gama media | Pendiente |
 | H4. Post-carrera | v0.4.0: página estática por sesión con imagen para compartir | 3 post-carreras generados con un comando y revisados | Pendiente |
@@ -60,4 +60,19 @@ Hitos de ApexPulse y su estado. Cada hito cierra con una versión etiquetada y u
 | 5 | Modelo canónico v1 y normalizador; docs/modelo-de-eventos.md | Hecha |
 | 6 | Reloj de replay y `make replay` | Hecha |
 | 7 | Reglas "parada barata bajo SC/VSC" y "ventana de undercut" | Hecha |
-| 8 | Golden test; docs/setup-local.md y docs/lecturas.md | Pendiente |
+| 8 | Golden de `cheap_stop`, propiedades de `undercut_window`, test de pipeline, `make golden-update`; docs/setup-local.md y docs/lecturas.md | Hecha |
+
+## H2: pendientes heredados de H1
+
+Cada uno tiene su detalle en [lecturas.md](lecturas.md) o [fuentes-de-datos.md](fuentes-de-datos.md).
+
+| Pendiente | Por qué importa |
+|-----------|-----------------|
+| Calibrar los umbrales de `config/readings.toml` (todos `calibrated = false`), incluida la guarda `min_lap`, con más carreras. Evaluar exigir diferencia de edad o de compuesto con el rival: en 15 de 34 lecturas de São Paulo ambos autos van igual | `undercut_window` emite 13 (Mónaco), 34 (São Paulo) y 7 (Australia) con umbrales iniciales |
+| Golden de `undercut_window`, una vez calibrada | Hoy solo tiene propiedades; fijar su salida antes congelaría lecturas que van a cambiar |
+| Vueltas restantes: agregar el total de vueltas a `SessionMeta` o a `circuits.toml` | La regla abre ventanas a pocas vueltas de la bandera a cuadros (Mónaco, vueltas 73 a 78) |
+| `pit.lap_number` incoherente en Australia (10 de 26 pasadas): derivar la vuelta desde `laps` por el instante de la pasada | Afecta `key`, `vuelta_propia` y la guarda de paradas recientes; cambiará el golden de Australia |
+| Decidir si un estado `*_ENDING` cuenta como neutralización para `cheap_stop` | Caso de borde de Australia, vuelta 34: pasada 2 s antes del verde |
+| Permitir `tyre_age` nulo en el modelo en lugar de omitir el stint | Hoy se omiten con aviso; ninguna de las tres carreras tiene casos |
+| Stint omitido en Australia porque su vuelta de inicio no está en `laps` (piloto 27) | Una pérdida de datos aislada que conviene entender |
+| Las 4 reglas restantes (degradación, batalla, condiciones) y el adaptador del archivo estático | Alcance de H2 |
