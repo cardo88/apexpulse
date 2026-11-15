@@ -281,3 +281,23 @@ def test_normalizador_avisa_cuando_omite_un_stint_sin_tyre_age_at_start(
 def test_normalizador_no_avisa_de_tyre_age_si_el_crudo_la_trae(tmp_path: Path) -> None:
     resultado = normalizar_fixture(MONACO_FIXTURE, "2026-monaco-r", tmp_path / "raw")
     assert not [a for a in resultado.warnings if "tyre_age_at_start" in a]
+
+
+def test_pit_sin_vuelta_anterior_conocida_usa_el_lap_number_crudo(tmp_path: Path) -> None:
+    """Sin una vuelta de `laps` anterior a la pasada, se usa el `lap_number` crudo con aviso."""
+    origen = tmp_path / "fixture"
+    shutil.copytree(MONACO_FIXTURE, origen)
+    archivo = origen / "pit.json"
+    filas = json.loads(archivo.read_text(encoding="utf-8"))
+    piloto = filas[0]["driver_number"]
+    filas[0]["date"] = "2026-06-07T10:00:00.000000+00:00"  # antes de la primera vuelta del recorte
+    archivo.write_text(json.dumps(filas), encoding="utf-8")
+
+    resultado = normalizar_fixture(origen, "2026-monaco-r", tmp_path / "raw")
+
+    avisos = [a for a in resultado.warnings if a.startswith("pit: vuelta no derivable")]
+    assert len(avisos) == 1
+    assert f"piloto {piloto}" in avisos[0]
+    pasadas = [e for e in resultado.events if isinstance(e, PitLane) and e.driver == piloto]
+    pasada = next(p for p in pasadas if p.t.hour == 10)
+    assert pasada.lap == filas[0]["lap_number"]

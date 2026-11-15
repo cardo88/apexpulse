@@ -7,6 +7,10 @@ se deriva de `race_control` con `trackstatus.derive_track_status`.
 Los registros que no se pueden ubicar en el tiempo se omiten y se informan como aviso, agrupados
 por motivo, por ejemplo `laps: 2 vueltas sin tiempo ni vuelta siguiente, omitidas`.
 
+`PitLane.lap` no usa el `lap_number` crudo de `pit` (incoherente en OpenF1: ver
+docs/fuentes-de-datos.md): se deriva de `laps`, por el instante de la pasada (`_vuelta_de_piloto`).
+Sin una vuelta anterior conocida, se usa el crudo con un aviso.
+
 `drivers` no trae fecha: cada `DriverInfo` lleva el inicio de la sesión según el calendario. Un
 crudo bajado antes de sumar ese endpoint se normaliza igual, sin pilotos y con un aviso.
 """
@@ -15,6 +19,7 @@ from __future__ import annotations
 
 import json
 import re
+from bisect import bisect_right
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -126,7 +131,7 @@ def normalize_openf1(session: SessionId, destino: Path) -> Normalized:
     vueltas, inicio_de_vuelta = _laps(leer("laps"), avisos)
     eventos += vueltas
     eventos += _stints(leer("stints"), inicio_de_vuelta, avisos)
-    eventos += _pits(leer("pit"))
+    eventos += _pits(leer("pit"), inicio_de_vuelta, avisos)
     eventos += _positions(leer("position"))
     eventos += _intervals(leer("intervals"), avisos)
     mensajes = _race_control(leer("race_control"))
@@ -262,17 +267,50 @@ def _stints(
     return eventos
 
 
-def _pits(filas: list[dict[str, Any]]) -> list[Event]:
+def _vuelta_de_piloto(inicios: list[tuple[datetime, int]], t: datetime) -> int | None:
+    """Vuelta que el piloto empezaba en el instante `t`: la última vuelta cuyo inicio es anterior.
+
+    `date` de `pit` llega muy cerca del cruce de línea que abre la vuelta siguiente a la de la
+    pasada (verificado contra el stint nuevo en Mónaco, São Paulo y Australia: la vuelta de la
+    pasada es casi siempre la anterior a la que ya empezó en `date`). Por eso se resta 1 a la
+    última vuelta iniciada antes de `t`, no se usa esa vuelta directamente.
+
+    `inicios` está ordenado por instante. `None` si `t` es anterior al primer inicio conocido.
+    """
+    i = bisect_right(inicios, (t, float("inf"))) - 1
+    return None if i < 0 else inicios[i][1] - 1
+
+
+def _pits(
+    filas: list[dict[str, Any]],
+    inicio_de_vuelta: dict[tuple[int, int], datetime],
+    avisos: _Avisos,
+) -> list[Event]:
+    por_piloto: dict[int, list[tuple[datetime, int]]] = defaultdict(list)
+    for (piloto, vuelta), t in inicio_de_vuelta.items():
+        por_piloto[piloto].append((t, vuelta))
+    for inicios in por_piloto.values():
+        inicios.sort()
+
     eventos: list[Event] = []
     for fila in filas:
+        piloto = int(fila["driver_number"])
+        t = _instante(fila["date"], "pit")
+        vuelta_propia = _vuelta_de_piloto(por_piloto.get(piloto, []), t)
+        if vuelta_propia is None:
+            vuelta_propia = int(fila["lap_number"])
+            avisos.sumar(
+                "pit: vuelta no derivable desde laps, se usa lap_number crudo",
+                f"piloto {piloto}",
+            )
         carril = _f(fila.get("lane_duration"))
         if carril is None:
             carril = _f(fila.get("pit_duration"))
         eventos.append(
             PitLane(
-                t=_instante(fila["date"], "pit"),
-                driver=int(fila["driver_number"]),
-                lap=int(fila["lap_number"]),
+                t=t,
+                driver=piloto,
+                lap=vuelta_propia,
                 lane_s=carril,
                 stationary_s=_f(fila.get("stop_duration")),
             )

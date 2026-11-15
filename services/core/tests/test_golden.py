@@ -6,10 +6,11 @@ que un golden mal regenerado no pasa por "lo que salga".
 
 Casos (VSC de Australia por la vuelta del líder en que se desplegó):
 - vuelta 12: positivo, 10 paradas con detención bajo VSC;
-- vuelta 18: positivo, 3 paradas con detención y 1 cambio de neumáticos sin `stop_duration`;
-- vuelta 34: sin paradas durante el VSC pleno. La única lectura es una pasada a las 04:53:09, 11 s
-  después de `VSC ENDING` y 2 s antes de `TRACK CLEAR`, con el estado todavía en `VSC_ENDING`,
-  que cuenta como neutralización (docs/lecturas.md). Es el caso de borde, no un negativo limpio.
+- vuelta 18: positivo, 3 paradas con detención bajo VSC (el cambio de neumáticos sin
+  `stop_duration` de VER quedó fuera: su pasada fue en `VSC_ENDING`, que ya no cuenta);
+- vuelta 34: negativo limpio. La única pasada del período (BOR, 04:53:09, 2 s antes de
+  `TRACK CLEAR`) fue en `VSC_ENDING`, que no cuenta como neutralización para `cheap_stop`
+  desde H2 (decisión del autor, docs/lecturas.md). `SC_ENDING` sí sigue contando.
 - São Paulo: cero lecturas, sin Safety Car ni VSC.
 """
 
@@ -95,13 +96,9 @@ def test_australia_vsc_de_las_vueltas_12_y_18_son_positivos(corridas: dict[str, 
     assert {e for (v, e) in cuenta if v in (12, 18)} == {"VSC"}
 
 
-def test_australia_vsc_de_la_vuelta_34_no_tiene_paradas_bajo_vsc_pleno(
-    corridas: dict[str, Corrida],
-) -> None:
+def test_australia_vsc_de_la_vuelta_34_es_negativo(corridas: dict[str, Corrida]) -> None:
     cuenta = _por_periodo_vsc(corridas["2026-australia-r"])
     assert cuenta.get((34, "VSC"), 0) == 0
-    assert cuenta.get((34, "VSC_ENDING"), 0) == 1  # BOR, el caso de borde
+    assert (34, "VSC_ENDING") not in cuenta  # BOR: VSC_ENDING ya no cuenta, no deja lectura
     lecturas = _cheap_stop(corridas["2026-australia-r"])
-    (borde,) = [r for r in lecturas if r.key.startswith("cheap_stop:5:")]
-    assert borde.evidence_value("estado_de_pista") == "VSC_ENDING"
-    assert borde.text == "BOR para bajo VSC en la vuelta 34: 5,2 s detenido y 22,6 s en pit lane."
+    assert [r for r in lecturas if r.drivers == (5,)] == []

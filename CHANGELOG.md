@@ -8,6 +8,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Changed
 - Roadmap: H1 figura como cerrado con la etiqueta v0.1.0 ya cortada.
+- `cheap_stop`: `VSC_ENDING` ya no cuenta como neutralización (`SC_ENDING` sí sigue contando);
+  el caso de borde de Australia v34 (BOR) pasa de lectura a negativo limpio (H2 t1).
+- El normalizador de OpenF1 deriva `PitLane.lap` de `laps` por el instante de la pasada, en vez
+  de usar el `lap_number` crudo de `pit` (incoherente en 10 de 26 pasadas de Australia; cambia
+  el golden de `cheap_stop` de esa sesión) (H2 t1).
 
 ## [0.1.0] - 2026-11-15
 

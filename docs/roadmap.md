@@ -71,8 +71,12 @@ Cada uno tiene su detalle en [lecturas.md](lecturas.md) o [fuentes-de-datos.md](
 | Calibrar los umbrales de `config/readings.toml` (todos `calibrated = false`), incluida la guarda `min_lap`, con más carreras. Evaluar exigir diferencia de edad o de compuesto con el rival: en 15 de 34 lecturas de São Paulo ambos autos van igual | `undercut_window` emite 13 (Mónaco), 34 (São Paulo) y 7 (Australia) con umbrales iniciales |
 | Golden de `undercut_window`, una vez calibrada | Hoy solo tiene propiedades; fijar su salida antes congelaría lecturas que van a cambiar |
 | Vueltas restantes: agregar el total de vueltas a `SessionMeta` o a `circuits.toml` | La regla abre ventanas a pocas vueltas de la bandera a cuadros (Mónaco, vueltas 73 a 78) |
-| `pit.lap_number` incoherente en Australia (10 de 26 pasadas): derivar la vuelta desde `laps` por el instante de la pasada | Afecta `key`, `vuelta_propia` y la guarda de paradas recientes; cambiará el golden de Australia |
-| Decidir si un estado `*_ENDING` cuenta como neutralización para `cheap_stop` | Caso de borde de Australia, vuelta 34: pasada 2 s antes del verde |
 | Permitir `tyre_age` nulo en el modelo en lugar de omitir el stint | Hoy se omiten con aviso; ninguna de las tres carreras tiene casos |
-| Stint omitido en Australia porque su vuelta de inicio no está en `laps` (piloto 27) | Una pérdida de datos aislada que conviene entender |
 | Las 3 reglas restantes (degradación, batalla, condiciones) y el adaptador del archivo estático | Alcance de H2 |
+
+Resueltos en H2 t1: `pit.lap_number` incoherente en Australia (ahora se deriva de `laps`) y si
+`*_ENDING` cuenta como neutralización para `cheap_stop` (`SC_ENDING` sí, `VSC_ENDING` no). El
+stint sin `tyre_age_at_start` del piloto 27 en Australia se investigó: su única vuelta registrada
+llega con `date_start` nulo en `laps`, sin otro dato para ubicar el stint; queda omitido con
+aviso, como antes. Detalle de los tres en [lecturas.md](lecturas.md) y
+[fuentes-de-datos.md](fuentes-de-datos.md).
