@@ -38,7 +38,9 @@ Verificación contra datos reales (tests en `tests/test_readings.py`):
 
 ## `cheap_stop`: parada bajo Safety Car o VSC
 
-**Condición.** Una parada real cuya pasada por el pit lane ocurrió con el estado de pista en `SC`, `SC_ENDING`, `VSC` o `VSC_ENDING` (`NEUTRALIZED`). Con bandera roja no dispara: el cambio de neumáticos es libre y la parada no es comparable. Se emite una vez por pasada (`cheap_stop:<piloto>:<vuelta de la pasada>`).
+**Condición.** Una parada real cuya pasada por el pit lane ocurrió con el estado de pista en `SC`, `SC_ENDING` o `VSC`. Con bandera roja no dispara: el cambio de neumáticos es libre y la parada no es comparable. Se emite una vez por pasada (`cheap_stop:<piloto>:<vuelta de la pasada>`).
+
+**`VSC_ENDING` no cuenta, a diferencia de `SC_ENDING`.** Las cuatro son `NEUTRALIZED` en el modelo (describe el estado físico de la pista, no esta regla), pero desde H2 la regla trata distinto el final de cada una: bajo Safety Car los autos siguen agrupados detrás del auto de seguridad hasta que entra a boxes, así que `SC_ENDING` sigue siendo una ventaja comparable; bajo VSC el pelotón ya acelera a ritmo de carrera antes de que el estado pase a verde, así que una pasada en `VSC_ENDING` no lo es. Decisión del autor. Antes de H2 las dos contaban igual; el caso de borde de Australia (ver abajo) pasó de ser una lectura a ser un negativo limpio.
 
 **Umbrales.** Ninguno propio. Depende de `[stops] confirm_timeout_laps`.
 
@@ -58,7 +60,7 @@ Verificación contra datos reales (tests en `tests/test_readings.py`):
 14:22:10  v61  LECTURA    BOR cambia neumáticos bajo Safety Car en la vuelta 61: blandos con 0 vueltas de uso y 20,3 s en pit lane.
 ```
 
-Mónaco 2026 (`2026-monaco-r`, SC de la vuelta 60): las 5 paradas con detención (HAM, ALO, RUS, PER, BOR) y 3 cambios confirmados por stint. En Australia (`2026-australia-r`, tres VSC en las vueltas 12, 18 y 34) salen 10, 4 y 1 lecturas:
+Mónaco 2026 (`2026-monaco-r`, SC de la vuelta 60): las 5 paradas con detención (HAM, ALO, RUS, PER, BOR) y 3 cambios confirmados por stint. En Australia (`2026-australia-r`, tres VSC en las vueltas 12, 18 y 34) salen 10, 4 y 0 lecturas:
 
 ```text
 04:19:43  v12  LECTURA    NOR para bajo VSC en la vuelta 12: 2,9 s detenido y 18,3 s en pit lane.
@@ -72,12 +74,12 @@ Mónaco 2026 (`2026-monaco-r`, SC de la vuelta 60): las 5 paradas con detención
 | Mónaco | SC de la vuelta 60 y de la 66 | 8 | 5 paradas con detención y 3 cambios por stint, todas bajo `SC` |
 | Australia | VSC de la vuelta 12 | 10 | Positivo: paradas con detención bajo `VSC` |
 | Australia | VSC de la vuelta 18 | 4 | Positivo: 3 con detención y 1 por stint (VER, sin `stop_duration`) |
-| Australia | VSC de la vuelta 34 | 1, de borde | Sin paradas bajo `VSC` pleno; ver abajo |
+| Australia | VSC de la vuelta 34 | 0 | Negativo limpio desde H2; ver abajo |
 | São Paulo | Sin SC ni VSC | 0 | Negativo: con bandera verde no hay lectura aunque haya 58 paradas |
 
-**Caso de borde de la vuelta 34 en Australia.** El VSC se desplegó a las 04:52:20, `VSC ENDING` llegó a las 04:52:58 y `TRACK CLEAR` a las 04:53:11. BOR pasó por el pit lane a las 04:53:09 (5,2 s detenido), con el estado todavía en `VSC_ENDING`, que cuenta como neutralización: sale una lectura (`BOR para bajo VSC en la vuelta 34`). No es un negativo limpio: durante el VSC pleno no hubo paradas, pero la pasada ocurrió 2 s antes del verde. Decidir si `*_ENDING` debe contar queda para H2.
+**Vuelta 34 en Australia, negativo limpio desde H2.** El VSC se desplegó a las 04:52:20, `VSC ENDING` llegó a las 04:52:58 y `TRACK CLEAR` a las 04:53:11. BOR pasó por el pit lane a las 04:53:09 (5,2 s detenido), con el estado todavía en `VSC_ENDING`, 2 s antes del verde. Hasta H1 eso contaba como neutralización y dejaba una lectura de borde (`BOR para bajo VSC en la vuelta 34`); desde H2, `VSC_ENDING` no cuenta (ver más arriba) y el período queda sin ninguna lectura, igual que durante el VSC pleno.
 
-**Dato de OpenF1 que el golden fija tal cual.** En Australia 10 de 26 pasadas del endpoint `pit` traen un `lap_number` que no corresponde a la vuelta del piloto en ese instante (46 para las cinco paradas de la vuelta 12; 18 para BOR en la 34). El texto no se ve afectado (usa la vuelta del líder), pero sí la `key` (`cheap_stop:1:46`) y la evidencia `vuelta_propia`. Mónaco y São Paulo no tienen el problema (0 de 86 y 0 de 58). El golden conserva los valores crudos; corregirlos desde `laps` es de H2 y cambiará el golden de Australia.
+**`PitLane.lap` se deriva de `laps`, no del `lap_number` crudo de `pit`.** OpenF1 publica `pit.date` muy cerca del cruce de línea que abre la vuelta siguiente a la de la pasada (verificado contra la vuelta en que arranca el stint nuevo, en las tres carreras); por eso el normalizador usa la vuelta anterior a la última que ya empezó en ese instante, no esa vuelta directamente (`sources/openf1_normalize.py`, `_vuelta_de_piloto`). Esto corrige, además del desajuste de a lo sumo una vuelta, los 10 de 26 casos de Australia en que `lap_number` traía un valor sin relación con la vuelta real (46 para las cinco paradas de la vuelta 12; la evidencia `vuelta_propia` del golden pasa de 46 a 11). Mónaco y São Paulo no tenían el problema (0 de 86 y 0 de 58): la vuelta derivada coincide con el valor crudo que ya traían. Sin una vuelta anterior conocida, se usa el `lap_number` crudo con un aviso.
 
 ## `undercut_window`: ventana de undercut
 

@@ -238,12 +238,23 @@ def test_bajo_bandera_roja_no_dispara() -> None:
     assert mesa.feed(_pit(100, 1, 10, stationary=30.0)) == []
 
 
-def test_vsc_y_su_final_cuentan_como_neutralizacion() -> None:
-    for estado, texto in ((TrackStatus.VSC, "VSC"), (TrackStatus.VSC_ENDING, "VSC")):
+def test_sc_y_su_final_cuentan_como_neutralizacion() -> None:
+    for estado in (TrackStatus.SC, TrackStatus.SC_ENDING):
         mesa = _mesa_con_dos()
         mesa.feed(_estado(50, estado))
         (lectura,) = mesa.feed(_pit(100, 1, 10, stationary=2.5))
-        assert f"bajo {texto} " in lectura.text
+        assert "bajo Safety Car " in lectura.text
+
+
+def test_vsc_cuenta_pero_vsc_ending_no() -> None:
+    mesa = _mesa_con_dos()
+    mesa.feed(_estado(50, TrackStatus.VSC))
+    (lectura,) = mesa.feed(_pit(100, 1, 10, stationary=2.5))
+    assert "bajo VSC " in lectura.text
+
+    mesa = _mesa_con_dos()
+    mesa.feed(_estado(50, TrackStatus.VSC_ENDING))
+    assert mesa.feed(_pit(100, 1, 10, stationary=2.5)) == []
 
 
 def test_key_usa_la_vuelta_propia_y_el_texto_la_del_lider() -> None:
@@ -634,14 +645,15 @@ def test_cheap_stop_en_los_tres_vsc_de_australia(australia: Path) -> None:
     lecturas = [r for r in _correr(replay) if r.rule == "cheap_stop"]
     por_vuelta: dict[int, set[str]] = {}
     for r in lecturas:
-        assert r.evidence_value("estado_de_pista") in {"VSC", "VSC_ENDING"}
+        assert r.evidence_value("estado_de_pista") == "VSC"  # VSC_ENDING no cuenta
         assert " bajo VSC " in r.text
         por_vuelta.setdefault(r.lap, set()).add(replay.state.acronym(r.drivers[0]))
     por_periodo = {12: 0, 18: 0, 34: 0}
     for vuelta, pilotos in por_vuelta.items():
         periodo = 12 if vuelta <= 14 else 18 if vuelta <= 20 else 34
         por_periodo[periodo] += len(pilotos)
-    assert por_periodo == {12: 10, 18: 4, 34: 1}
+    # v34: negativo limpio. La única pasada del período fue en VSC_ENDING (BOR), que ya no cuenta.
+    assert por_periodo == {12: 10, 18: 4, 34: 0}
 
 
 def test_sin_vsc_ni_sc_no_hay_cheap_stop_en_sao_paulo(sao_paulo_paradas: Path) -> None:

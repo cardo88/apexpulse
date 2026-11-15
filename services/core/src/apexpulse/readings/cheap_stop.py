@@ -1,8 +1,15 @@
 """Regla `cheap_stop`: parada real bajo Safety Car o VSC.
 
 Condición: una parada real (ver `stops.py`) cuya pasada por el pit lane ocurrió con el estado de
-pista en SC, SC_ENDING, VSC o VSC_ENDING (`NEUTRALIZED`). Con bandera roja no dispara: el cambio de
-neumáticos es libre y la parada no es comparable.
+pista en SC, SC_ENDING o VSC. Con bandera roja no dispara: el cambio de neumáticos es libre y la
+parada no es comparable.
+
+`VSC_ENDING` no cuenta, a diferencia de `SC_ENDING` (ambos son `NEUTRALIZED` en el modelo, que
+describe el estado físico de la pista, no esta regla). Bajo Safety Car los autos siguen agrupados
+detrás del auto de seguridad hasta que entra a boxes; bajo VSC el pelotón ya acelera a ritmo de
+carrera antes de que el estado pase a verde, así que una pasada en `VSC_ENDING` no tiene la misma
+ventaja comparable. Decisión del autor (docs/lecturas.md); el caso de borde de Australia v34
+(BOR, antes la única lectura de ese período) pasa a ser negativo.
 
 La evidencia es solo lo observado. El texto no afirma cuánto tiempo se ahorra: eso requiere el
 ritmo del pelotón y la geometría del pit lane de cada circuito, que el modelo no tiene.
@@ -12,7 +19,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from apexpulse.model import NEUTRALIZED, Event
+from apexpulse.model import Event, TrackStatus
 from apexpulse.readings.config import Messages
 from apexpulse.readings.format import num
 from apexpulse.readings.model import Evidence, Reading
@@ -21,6 +28,8 @@ from apexpulse.readings.stops import RealStop
 if TYPE_CHECKING:
     from apexpulse.readings.engine import Context
     from apexpulse.replay.state import RaceState
+
+_CUENTA_COMO_NEUTRALIZACION = frozenset({TrackStatus.SC, TrackStatus.SC_ENDING, TrackStatus.VSC})
 
 
 class CheapStop:
@@ -37,7 +46,7 @@ class CheapStop:
         return [
             self._lectura(parada, evento, state)
             for parada in ctx.new_stops
-            if parada.status in NEUTRALIZED
+            if parada.status in _CUENTA_COMO_NEUTRALIZACION
         ]
 
     def _lectura(self, parada: RealStop, evento: Event, state: RaceState) -> Reading:
