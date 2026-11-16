@@ -6,7 +6,7 @@ UV_RUN := uv run --locked --directory $(CORE)
 PYTHON ?= python3
 DATA_DIR ?= $(CURDIR)/data
 
-.PHONY: help setup check lint typecheck test check-docs check-skills check-private mapa fetch normalize replay fixture golden-update
+.PHONY: help setup check lint typecheck test check-docs check-skills check-private mapa fetch normalize replay fixture golden-update escanear calibrar
 
 help: ## Lista los targets disponibles
 	@grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -62,3 +62,12 @@ golden-update: ## Regraba tests/golden con la salida actual y muestra el diff (S
 	@$(UV_RUN) pytest tests/test_golden.py --golden-update -q $(if $(SESSION),-k $(SESSION))
 	@git diff --stat -- $(CORE)/tests/golden
 	@echo "golden-update: revisar el diff completo (git diff $(CORE)/tests/golden) y poner el motivo en el commit"
+
+escanear: ## Escaneo de solo lectura de las carreras de OpenF1 de un año (YEAR=<año>; EXCLUIR=<slugs,...>)
+	@test -n "$(YEAR)" || { echo "Uso: make escanear YEAR=2026" >&2; exit 2; }
+	@$(UV_RUN) python -m apexpulse escanear $(YEAR) --data-dir $(DATA_DIR) \
+		--fixtures-dir $(CURDIR)/fixtures/sessions $(if $(EXCLUIR),--excluir $(EXCLUIR))
+
+calibrar: ## Intentos reales de undercut y tablas de calibración (SESIONES=<id,id,...>; K=<n,n,...>)
+	@$(UV_RUN) python -m apexpulse calibrar --data-dir $(DATA_DIR) \
+		$(if $(SESIONES),--sesiones $(SESIONES)) $(if $(K),--k $(K))

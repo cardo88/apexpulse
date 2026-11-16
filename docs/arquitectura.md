@@ -85,7 +85,7 @@ Ejemplo de Mónaco 2026: ANT completa la vuelta 59 a las 14:18:59.989 UTC y el S
 
 El líder que se nombra es el piloto en posición 1, no el que más vueltas completó. Pueden diferir por un instante, por ejemplo cuando un auto completa la vuelta antes de que llegue su evento de posición. Una posición nueva desplaza al que la tenía hasta que llegue su propio evento. Si la sesión no trae eventos de posición 1, el marcador muestra `---`. Pasa en el fixture recortado de Mónaco, porque OpenF1 publica la posición solo cuando cambia.
 
-`RaceState` guarda, además, los pilotos (`driver`), el estado de pista, el clima y, por auto, la posición, la última vuelta, el stint vigente, el último intervalo y las paradas. Las paradas se cuentan solo con `stationary_s` no nulo; las pasadas por el pit lane sin detención se cuentan aparte.
+`RaceState` guarda, además, los pilotos (`driver`), el estado de pista, el clima y, por auto, la posición, la última vuelta, el stint vigente, el último intervalo y las paradas. Las paradas se cuentan solo con `stationary_s` no nulo; las pasadas por el pit lane sin detención se cuentan aparte. `total_laps` es la única excepción al fold puro de eventos: `Replay` lo completa al construirse (y lo conserva tras un seek hacia atrás) desde `circuits.toml`, no desde ningún evento; queda `None` si el circuito todavía no tiene el total validado. Lo usa la guarda de vueltas restantes de `undercut_window` (docs/lecturas.md).
 
 Layout de datos:
 

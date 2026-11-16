@@ -1,0 +1,16 @@
+[
+{"date":"2026-06-14T13:19:06.289000+00:00","session_key":11307,"stop_duration":2.5,"pit_duration":22.48,"driver_number":44,"lane_duration":22.48,"meeting_key":1287,"lap_number":11},
+{"date":"2026-06-14T13:19:32.167000+00:00","session_key":11307,"stop_duration":6.3,"pit_duration":25.983,"driver_number":30,"lane_duration":25.983,"meeting_key":1287,"lap_number":11},
+{"date":"2026-06-14T13:20:25.691000+00:00","session_key":11307,"stop_duration":2.4,"pit_duration":22.08,"driver_number":63,"lane_duration":22.08,"meeting_key":1287,"lap_number":12},
+{"date":"2026-06-14T13:20:38.434000+00:00","session_key":11307,"stop_duration":2.5,"pit_duration":22.273,"driver_number":3,"lane_duration":22.273,"meeting_key":1287,"lap_number":12},
+{"date":"2026-06-14T13:21:02.197000+00:00","session_key":11307,"stop_duration":3.3,"pit_duration":22.983,"driver_number":43,"lane_duration":22.983,"meeting_key":1287,"lap_number":12},
+{"date":"2026-06-14T13:21:18.159000+00:00","session_key":11307,"stop_duration":4.2,"pit_duration":24.805,"driver_number":11,"lane_duration":24.805,"meeting_key":1287,"lap_number":12},
+{"date":"2026-06-14T13:21:56.796000+00:00","session_key":11307,"stop_duration":null,"pit_duration":21.7,"driver_number":1,"lane_duration":21.7,"meeting_key":1287,"lap_number":13},
+{"date":"2026-06-14T13:22:21.978000+00:00","session_key":11307,"stop_duration":2.6,"pit_duration":22.869,"driver_number":27,"lane_duration":22.869,"meeting_key":1287,"lap_number":13},
+{"date":"2026-06-14T13:22:36.805000+00:00","session_key":11307,"stop_duration":3.4,"pit_duration":23.256,"driver_number":31,"lane_duration":23.256,"meeting_key":1287,"lap_number":13},
+{"date":"2026-06-14T13:22:40.415000+00:00","session_key":11307,"stop_duration":5.0,"pit_duration":24.005,"driver_number":23,"lane_duration":24.005,"meeting_key":1287,"lap_number":13},
+{"date":"2026-06-14T13:23:17.696000+00:00","session_key":11307,"stop_duration":2.6,"pit_duration":22.038,"driver_number":12,"lane_duration":22.038,"meeting_key":1287,"lap_number":14},
+{"date":"2026-06-14T13:23:29.775000+00:00","session_key":11307,"stop_duration":2.2,"pit_duration":21.776,"driver_number":81,"lane_duration":21.776,"meeting_key":1287,"lap_number":14},
+{"date":"2026-06-14T13:23:54.707000+00:00","session_key":11307,"stop_duration":3.0,"pit_duration":22.682,"driver_number":10,"lane_duration":22.682,"meeting_key":1287,"lap_number":14},
+{"date":"2026-06-14T13:23:58.472000+00:00","session_key":11307,"stop_duration":3.4,"pit_duration":22.977,"driver_number":55,"lane_duration":22.977,"meeting_key":1287,"lap_number":14}
+]

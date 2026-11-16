@@ -4,18 +4,22 @@ Se evalúa cuando el perseguidor completa una vuelta, con la última distancia c
 se abre cuando, durante `confirm_laps` vueltas seguidas, se cumplen las condiciones. Se emite una
 vez por pareja y stint del perseguidor.
 
-Guardas que no dependen de calibración (descartan datos que no significan lo que parecen):
+Guardas que no dependen de calibración (descartan datos que no significan lo que parecen, o
+situaciones donde un undercut ya no tiene sentido):
 - el intervalo del perseguidor es numérico: un auto doblado no tiene `interval_s`, y si el rival
   está doblado la distancia no es en pista;
 - ni el perseguidor ni el rival están en vuelta de entrada o de salida de boxes;
 - ni el perseguidor ni el rival pararon en las últimas `recent_stop_laps` vueltas;
 - el perseguidor completó al menos la vuelta `min_lap` (guarda configurable contra el
-  comienzo de la carrera, donde el intervalo corto lo explica la largada).
+  comienzo de la carrera, donde el intervalo corto lo explica la largada);
+- al perseguidor le quedan al menos `min_vueltas_restantes` vueltas (si se conoce el total de
+  la carrera, de `circuits.toml`; sin ese dato, la guarda no se aplica). Guarda empírica,
+  calibrada con el percentil 10 de vueltas restantes en las paradas reales bajo bandera verde
+  del corpus de H2 t2 (docs/lecturas.md), no con la tasa de éxito del undercut.
 
-Condiciones que sí dependen de los umbrales de readings.toml (no calibrados): pista en verde,
-`interval_s` de hasta `max_gap_s` y neumático del perseguidor con `min_tyre_age_laps` vueltas o más.
-
-La regla no conoce las vueltas que quedan: el modelo no trae el total de la carrera.
+Condiciones que sí dependen de los umbrales de readings.toml (`max_gap_s` con evidencia desde
+H2 t2; `min_tyre_age_laps` sin poder testearse con ese corpus): pista en verde, `interval_s` de
+hasta `max_gap_s` y neumático del perseguidor con `min_tyre_age_laps` vueltas o más.
 """
 
 from __future__ import annotations
@@ -87,8 +91,10 @@ class UndercutWindow:
             and intervalo.interval_laps is None
             and (otro.interval is None or otro.interval.laps_down is None)
         )
+        restantes = None if state.total_laps is None else state.total_laps - lap
         guards_ok = (
             lap >= cfg.min_lap
+            and (restantes is None or restantes >= cfg.min_vueltas_restantes)
             and numerico
             and not tracker.in_pit_lap(chaser, state)
             and not tracker.in_pit_lap(rival, state)

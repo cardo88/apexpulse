@@ -28,6 +28,7 @@ from apexpulse.model import (
     write_events,
 )
 from apexpulse.replay import FakeClock, RaceState, Replay, ReplayError, Step
+from apexpulse.session_id import SessionId
 from apexpulse.sources import Normalized
 from conftest import OPENF1_MONACO, OPENF1_SAO_PAULO, normalizar_fixture
 
@@ -63,7 +64,9 @@ def _pasos(replay: Replay) -> list[Step]:
 
 
 def _plegar(path: Path, hasta: datetime) -> RaceState:
-    estado = RaceState()
+    """Pliega a mano, como hace `Replay` tras un seek (incluido el total de vueltas inicial)."""
+    vueltas = SessionId.parse(read_meta(path).session).circuit_info.vueltas
+    estado = RaceState(total_laps=vueltas)
     for evento in read_events(path):
         if evento.t < hasta:
             estado.apply(evento)

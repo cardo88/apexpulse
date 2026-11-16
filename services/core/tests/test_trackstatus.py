@@ -102,6 +102,19 @@ def test_roja_termina_solo_con_session_started() -> None:
     ) == ["GREEN", "RED", "GREEN", "FINISHED"]
 
 
+def test_chequered_flag_no_es_bandera_roja() -> None:
+    """`"CHEQUERED FLAG"` contiene la subcadena `"RED FLAG"` (...chequ-ERED FLAG).
+
+    Un filtro que busque `"RED FLAG" in texto` en vez de `texto.startswith("RED FLAG")` la
+    confunde con una bandera roja real. `_transicion` ya usa `startswith`; este test lo deja
+    explícito (encontrado al escanear carreras de 2026 para H2 t2, ver docs/fuentes-de-datos.md).
+    """
+    assert _estados(INICIO, _rc(100, "CHEQUERED FLAG", "Flag", "CHEQUERED", "Track")) == [
+        "GREEN",
+        "FINISHED",
+    ]
+
+
 def test_bandera_verde_previa_a_la_largada_no_cuenta() -> None:
     assert _estados(
         _rc(-3600, "GREEN LIGHT - PIT EXIT OPEN", "Flag", "GREEN", "Track"), INICIO

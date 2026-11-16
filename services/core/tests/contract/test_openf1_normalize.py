@@ -301,3 +301,93 @@ def test_pit_sin_vuelta_anterior_conocida_usa_el_lap_number_crudo(tmp_path: Path
     pasadas = [e for e in resultado.events if isinstance(e, PitLane) and e.driver == piloto]
     pasada = next(p for p in pasadas if p.t.hour == 10)
     assert pasada.lap == filas[0]["lap_number"]
+
+
+def test_pit_en_la_vuelta_1_deriva_vuelta_0(tmp_path: Path) -> None:
+    """Límite conocido: sin una vuelta anterior a la primera, la resta de 1 da 0, no 1.
+
+    `_vuelta_de_piloto` asume que `pit.date` llega después del cruce que abre la vuelta
+    siguiente a la de la pasada (verificado contra el stint nuevo de cada pasada real en las
+    tres carreras, ver docs/lecturas.md). En la vuelta 1 no hay una vuelta anterior con la que
+    contrastar esa hipótesis: el resultado es 0, no 1. Ninguna de las tres carreras de prueba
+    tiene una parada en la vuelta 1; si aparece una real, este resultado hay que revisarlo con
+    el dato en mano.
+    """
+    origen = tmp_path / "fixture"
+    shutil.copytree(MONACO_FIXTURE, origen)
+    archivo = origen / "pit.json"
+    filas = json.loads(archivo.read_text(encoding="utf-8"))
+    # Piloto 1: lap_start de su primer stint es la vuelta 1 (13:03:11.903, dura 91,069 s).
+    filas.append(
+        {
+            "date": "2026-06-07T13:03:30.000000+00:00",
+            "session_key": 11299,
+            "pit_duration": 20.0,
+            "stop_duration": 3.0,
+            "lap_number": 1,
+            "meeting_key": 1286,
+            "driver_number": 1,
+            "lane_duration": 20.0,
+        }
+    )
+    archivo.write_text(json.dumps(filas), encoding="utf-8")
+
+    resultado = normalizar_fixture(origen, "2026-monaco-r", tmp_path / "raw")
+
+    pasada = next(
+        e
+        for e in resultado.events
+        if isinstance(e, PitLane) and e.driver == 1 and e.t.minute == 3 and e.t.second == 30
+    )
+    assert pasada.lap == 0
+
+
+def test_pit_bajo_bandera_roja_con_horas_sin_vueltas_no_rompe_la_derivacion(
+    tmp_path: Path,
+) -> None:
+    """La pasada de HAM durante la bandera roja (2156 s en el pit lane) deriva la vuelta 68.
+
+    Ninguna vuelta empieza durante la suspensión: el hueco entre vueltas conocidas no afecta
+    la búsqueda de la última vuelta iniciada antes de la pasada.
+    """
+    resultado = normalizar_fixture(MONACO_FIXTURE, "2026-monaco-r", tmp_path / "raw")
+    pasada = next(
+        e
+        for e in resultado.events
+        if isinstance(e, PitLane) and e.driver == 44 and e.lane_s is not None and e.lane_s > 2000
+    )
+    assert pasada.lap == 68
+
+
+def test_pit_en_el_instante_exacto_de_un_inicio_de_vuelta_deriva_la_vuelta_anterior(
+    tmp_path: Path,
+) -> None:
+    """`date` igual al inicio de una vuelta cuenta como posterior al cruce (`<=`), no anterior."""
+    origen = tmp_path / "fixture"
+    shutil.copytree(MONACO_FIXTURE, origen)
+    archivo = origen / "pit.json"
+    filas = json.loads(archivo.read_text(encoding="utf-8"))
+    # Piloto 44 empieza la vuelta 61 exactamente en este instante (dato real del fixture).
+    inicio_vuelta_61 = "2026-06-07T14:21:25.510000+00:00"
+    filas.append(
+        {
+            "date": inicio_vuelta_61,
+            "session_key": 11299,
+            "pit_duration": 20.0,
+            "stop_duration": 3.0,
+            "lap_number": 99,  # deliberadamente distinto, para que la derivación no lo copie
+            "meeting_key": 1286,
+            "driver_number": 44,
+            "lane_duration": 20.0,
+        }
+    )
+    archivo.write_text(json.dumps(filas), encoding="utf-8")
+
+    resultado = normalizar_fixture(origen, "2026-monaco-r", tmp_path / "raw")
+
+    pasada = next(
+        e
+        for e in resultado.events
+        if isinstance(e, PitLane) and e.driver == 44 and e.t.isoformat() == inicio_vuelta_61
+    )
+    assert pasada.lap == 60

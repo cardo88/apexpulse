@@ -32,6 +32,7 @@ from apexpulse.model import (
 from apexpulse.readings.model import Reading
 from apexpulse.replay.clock import Clock
 from apexpulse.replay.state import RaceState
+from apexpulse.session_id import SessionId, SessionIdError
 
 # Margen para comparar posiciones en segundos de sesión (las marcas tienen resolución de 1 µs).
 _EPS = 1e-7
@@ -103,7 +104,7 @@ class Replay:
         self.engine = engine
         self._paused = False
         self._cursor = 0
-        self.state = RaceState()
+        self.state = RaceState(total_laps=_vueltas_totales(meta))
         self._anchor_real = clock.monotonic()
         self._anchor_pos = 0.0
         self.seek(meta.start)
@@ -204,7 +205,7 @@ class Replay:
 
     def _ir_a(self, indice: int, pos: float) -> None:
         if indice < self._cursor:
-            self.state = RaceState()
+            self.state = RaceState(total_laps=self.state.total_laps)
             if self.engine is not None:
                 self.engine.reset()
             self._cursor = 0
@@ -264,6 +265,14 @@ class Replay:
                 lote = self.pop_due()
                 if lote:
                     yield lote
+
+
+def _vueltas_totales(meta: SessionMeta) -> int | None:
+    """Total de vueltas del circuito de `meta.session`, de `circuits.toml`; None si no se sabe."""
+    try:
+        return SessionId.parse(meta.session).circuit_info.vueltas
+    except SessionIdError:
+        return None
 
 
 def _validar_version(meta: SessionMeta) -> None:

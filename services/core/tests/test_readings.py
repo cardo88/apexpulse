@@ -57,8 +57,8 @@ def _t(segundos: float) -> datetime:
 class Mesa:
     """Un `RaceState` y un `Engine` alimentados evento por evento, como hace el replay."""
 
-    def __init__(self, engine: Engine | None = None) -> None:
-        self.state = RaceState()
+    def __init__(self, engine: Engine | None = None, *, total_laps: int | None = None) -> None:
+        self.state = RaceState(total_laps=total_laps)
         self.engine = Engine.default() if engine is None else engine
         self.lecturas: list[Reading] = []
 
@@ -366,6 +366,33 @@ def test_undercut_la_vuelta_minima_no_cambia_nada_si_ya_se_cumple() -> None:
     assert con_5.lecturas == con_1.lecturas != []
 
 
+def _mesa_con_total(total_laps: int) -> Mesa:
+    mesa = Mesa(total_laps=total_laps)
+    mesa.feed(_piloto(1, "HAM"), _piloto(2, "ANT"), _stint(0, 1, 1, 1), _stint(0, 2, 1, 1))
+    mesa.feed(
+        PositionChanged(t=_t(0), driver=2, position=1),
+        PositionChanged(t=_t(0), driver=1, position=2),
+    )
+    return mesa
+
+
+def test_undercut_no_abre_si_quedan_menos_vueltas_que_el_piso() -> None:
+    """Sin el total de vueltas abre en la 11 (ver arriba); con 20 de total, a esa vuelta quedan
+    9, menos que `min_vueltas_restantes` (11 en readings.toml): no abre en ninguna de las 14."""
+    mesa = _mesa_con_total(20)
+    emitidas = [bool(_vuelta_de_los_dos(mesa, n)) for n in range(1, 15)]
+    assert not any(emitidas)
+    assert _lecturas_de_undercut(mesa) == []
+
+
+def test_undercut_abre_si_el_total_de_vueltas_deja_margen() -> None:
+    """Con 25 de total quedan 14 en la vuelta 11: por encima del piso, abre igual que sin total."""
+    mesa = _mesa_con_total(25)
+    emitidas = [bool(_vuelta_de_los_dos(mesa, n)) for n in range(1, 15)]
+    assert emitidas.index(True) == 10
+    assert sum(emitidas) == 1
+
+
 def test_undercut_ignora_el_intervalo_de_un_auto_doblado() -> None:
     mesa = _carrera_de_dos()
     for n in range(1, 15):
@@ -469,6 +496,7 @@ def test_config_empaquetada_esta_marcada_como_no_calibrada() -> None:
     assert (config.undercut.max_gap_s, config.undercut.min_tyre_age_laps) == (2.0, 10)
     assert (config.undercut.confirm_laps, config.undercut.recent_stop_laps) == (2, 3)
     assert config.undercut.min_lap == 5
+    assert config.undercut.min_vueltas_restantes == 11
     assert config.stops.confirm_timeout_laps == 2
 
 
@@ -482,6 +510,7 @@ def _datos(**cambios: object) -> dict[str, dict[str, object]]:
             "confirm_laps": 2,
             "recent_stop_laps": 3,
             "min_lap": 5,
+            "min_vueltas_restantes": 0,
         },
     }
     for ruta, valor in cambios.items():
@@ -501,6 +530,7 @@ def _datos(**cambios: object) -> dict[str, dict[str, object]]:
         {"undercut_window__min_lap": 0},
         {"undercut_window__min_lap": 5.0},
         {"undercut_window__max_gap_s": "2.0"},
+        {"undercut_window__min_vueltas_restantes": -1},
     ],
 )
 def test_config_rechaza_valores_invalidos(cambio: dict[str, object]) -> None:

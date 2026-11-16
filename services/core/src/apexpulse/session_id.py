@@ -40,6 +40,7 @@ class Circuit:
     slug: str
     nombre: str
     openf1: str  # circuit_short_name en OpenF1
+    vueltas: int | None = None  # total de vueltas de la carrera; None si no está validado aún
 
 
 @dataclass(frozen=True)
@@ -89,6 +90,11 @@ def circuits() -> dict[str, Circuit]:
     texto = resources.files("apexpulse").joinpath("config/circuits.toml").read_text("utf-8")
     datos = tomllib.loads(texto)
     return {
-        slug: Circuit(slug=slug, nombre=str(campos["nombre"]), openf1=str(campos["openf1"]))
+        slug: Circuit(
+            slug=slug,
+            nombre=str(campos["nombre"]),
+            openf1=str(campos["openf1"]),
+            vueltas=None if campos.get("vueltas") is None else int(campos["vueltas"]),
+        )
         for slug, campos in datos["circuitos"].items()
     }
