@@ -31,6 +31,9 @@ OPENF1_SAO_PAULO_CONTRATO = RAIZ / "fixtures" / "contract" / "2026-sao-paulo-r" 
 OPENF1_MONACO = FIXTURES / "2026-monaco-r" / "openf1"
 # VSC en la vuelta 12, 18 y 34 de la carrera de Australia.
 OPENF1_AUSTRALIA = FIXTURES / "2026-australia-r" / "openf1"
+# Tanda de paradas en verde de la vuelta 4 a la 17 (H2 t2: calibración de undercut_window).
+OPENF1_BARCELONA = FIXTURES / "2026-barcelona-r" / "openf1"
+OPENF1_HUNGRIA = FIXTURES / "2026-hungria-r" / "openf1"
 # Carrera completa de São Paulo solo con pit, stints, laps y race_control (sin intervalos).
 OPENF1_SAO_PAULO_PARADAS = RAIZ / "fixtures" / "contract" / "2026-sao-paulo-r-paradas" / "openf1"
 

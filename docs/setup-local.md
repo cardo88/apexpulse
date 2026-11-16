@@ -26,6 +26,19 @@ make check    # todas las verificaciones, las mismas que corre CI
 
 `make help` lista los targets disponibles. El detalle de cada uno está en [ai/mapa-codigo.md](ai/mapa-codigo.md).
 
+## Escanear un año
+
+```bash
+make escanear YEAR=2026                               # todas las carreras de 2026
+make escanear YEAR=2026 EXCLUIR=monaco,australia      # saltea slugs ya elegidos
+```
+
+- Pide `sessions`, `weather`, `race_control` y `pit` de cada carrera (no `laps`, `stints`, `intervals`, `position` ni `drivers`: liviano a propósito, para elegir qué sesión bajar con `make fetch`, no para normalizarla). Respeta el mismo límite de tasa y reintenta igual ante 429 o 5xx.
+- Imprime, por carrera: si ya tiene fixture en `fixtures/sessions/`, si llovió, paradas con detención, paradas en verde (fuera de SC, VSC o bandera roja), períodos de SC/VSC y si hubo bandera roja real.
+- El crudo pedido se cachea en `data/raw/<año>/_escaneo/<session_key>/`, separado de la caché de `make fetch`: una sesión que después se baja entera vuelve a pedir estos tres endpoints (son livianos).
+- Se ejecuta desde la compu (IP residencial), igual que `make fetch`.
+- Detalle en [fuentes-de-datos.md](fuentes-de-datos.md#escaneo-de-carreras).
+
 ## Descargar una sesión
 
 ```bash

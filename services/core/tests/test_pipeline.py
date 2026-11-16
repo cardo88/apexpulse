@@ -50,6 +50,8 @@ def test_cada_fixture_produce_las_lecturas_de_las_reglas_que_ejercita(
         "2026-monaco-r": {"cheap_stop"},
         "2026-australia-r": {"cheap_stop", "undercut_window"},
         "2026-sao-paulo-r": {"undercut_window"},
+        "2026-barcelona-r": {"undercut_window"},
+        "2026-hungria-r": {"undercut_window"},
     }
     assert reglas == esperadas[sesion]
     assert any("LECTURA" in linea for linea in corrida.console)

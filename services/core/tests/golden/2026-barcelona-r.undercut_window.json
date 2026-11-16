@@ -1,0 +1,164 @@
+[
+  {
+    "rule": "undercut_window",
+    "key": "undercut_window:3:1:1",
+    "t": "2026-06-14T13:14:38.040000+00:00",
+    "lap": 9,
+    "drivers": [3, 1],
+    "evidence": [
+      {"name": "gap_s", "value": 1.822, "unit": "s"},
+      {"name": "vueltas_seguidas", "value": 2, "unit": "vueltas"},
+      {"name": "posicion_perseguidor", "value": 5},
+      {"name": "vuelta_perseguidor", "value": 8, "unit": "vuelta"},
+      {"name": "edad_perseguidor", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_perseguidor", "value": "SOFT"},
+      {"name": "edad_rival", "value": 8, "unit": "vueltas"},
+      {"name": "compuesto_rival", "value": "MEDIUM"}
+    ],
+    "text": "VER está a 1,8 s de NOR desde hace 2 vueltas, con neumáticos blandos de 11 vueltas contra medios de 8: ventana de undercut."
+  },
+  {
+    "rule": "undercut_window",
+    "key": "undercut_window:16:3:1",
+    "t": "2026-06-14T13:18:50.979000+00:00",
+    "lap": 12,
+    "drivers": [16, 3],
+    "evidence": [
+      {"name": "gap_s", "value": 0.562, "unit": "s"},
+      {"name": "vueltas_seguidas", "value": 2, "unit": "vueltas"},
+      {"name": "posicion_perseguidor", "value": 6},
+      {"name": "vuelta_perseguidor", "value": 11, "unit": "vuelta"},
+      {"name": "edad_perseguidor", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_perseguidor", "value": "MEDIUM"},
+      {"name": "edad_rival", "value": 14, "unit": "vueltas"},
+      {"name": "compuesto_rival", "value": "SOFT"}
+    ],
+    "text": "LEC está a 0,6 s de VER desde hace 2 vueltas, con neumáticos medios de 11 vueltas contra blandos de 14: ventana de undercut."
+  },
+  {
+    "rule": "undercut_window",
+    "key": "undercut_window:43:41:1",
+    "t": "2026-06-14T13:19:12.561000+00:00",
+    "lap": 12,
+    "drivers": [43, 41],
+    "evidence": [
+      {"name": "gap_s", "value": 1.349, "unit": "s"},
+      {"name": "vueltas_seguidas", "value": 2, "unit": "vueltas"},
+      {"name": "posicion_perseguidor", "value": 12},
+      {"name": "vuelta_perseguidor", "value": 11, "unit": "vuelta"},
+      {"name": "edad_perseguidor", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_perseguidor", "value": "SOFT"},
+      {"name": "edad_rival", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_rival", "value": "MEDIUM"}
+    ],
+    "text": "COL está a 1,3 s de LIN desde hace 2 vueltas, con neumáticos blandos de 11 vueltas contra medios de 11: ventana de undercut."
+  },
+  {
+    "rule": "undercut_window",
+    "key": "undercut_window:10:43:1",
+    "t": "2026-06-14T13:19:13.494000+00:00",
+    "lap": 12,
+    "drivers": [10, 43],
+    "evidence": [
+      {"name": "gap_s", "value": 0.902, "unit": "s"},
+      {"name": "vueltas_seguidas", "value": 2, "unit": "vueltas"},
+      {"name": "posicion_perseguidor", "value": 13},
+      {"name": "vuelta_perseguidor", "value": 11, "unit": "vuelta"},
+      {"name": "edad_perseguidor", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_perseguidor", "value": "MEDIUM"},
+      {"name": "edad_rival", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_rival", "value": "SOFT"}
+    ],
+    "text": "GAS está a 0,9 s de COL desde hace 2 vueltas, con neumáticos medios de 11 vueltas contra blandos de 11: ventana de undercut."
+  },
+  {
+    "rule": "undercut_window",
+    "key": "undercut_window:87:31:1",
+    "t": "2026-06-14T13:19:19.610000+00:00",
+    "lap": 12,
+    "drivers": [87, 31],
+    "evidence": [
+      {"name": "gap_s", "value": 1.14, "unit": "s"},
+      {"name": "vueltas_seguidas", "value": 2, "unit": "vueltas"},
+      {"name": "posicion_perseguidor", "value": 16},
+      {"name": "vuelta_perseguidor", "value": 11, "unit": "vuelta"},
+      {"name": "edad_perseguidor", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_perseguidor", "value": "MEDIUM"},
+      {"name": "edad_rival", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_rival", "value": "SOFT"}
+    ],
+    "text": "BEA está a 1,1 s de OCO desde hace 2 vueltas, con neumáticos medios de 11 vueltas contra blandos de 11: ventana de undercut."
+  },
+  {
+    "rule": "undercut_window",
+    "key": "undercut_window:5:87:1",
+    "t": "2026-06-14T13:19:20.618000+00:00",
+    "lap": 12,
+    "drivers": [5, 87],
+    "evidence": [
+      {"name": "gap_s", "value": 0.875, "unit": "s"},
+      {"name": "vueltas_seguidas", "value": 2, "unit": "vueltas"},
+      {"name": "posicion_perseguidor", "value": 17},
+      {"name": "vuelta_perseguidor", "value": 11, "unit": "vuelta"},
+      {"name": "edad_perseguidor", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_perseguidor", "value": "MEDIUM"},
+      {"name": "edad_rival", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_rival", "value": "MEDIUM"}
+    ],
+    "text": "BOR está a 0,9 s de BEA desde hace 2 vueltas, con neumáticos medios de 11 vueltas contra medios de 11: ventana de undercut."
+  },
+  {
+    "rule": "undercut_window",
+    "key": "undercut_window:23:5:1",
+    "t": "2026-06-14T13:19:22.318000+00:00",
+    "lap": 12,
+    "drivers": [23, 5],
+    "evidence": [
+      {"name": "gap_s", "value": 1.748, "unit": "s"},
+      {"name": "vueltas_seguidas", "value": 2, "unit": "vueltas"},
+      {"name": "posicion_perseguidor", "value": 18},
+      {"name": "vuelta_perseguidor", "value": 11, "unit": "vuelta"},
+      {"name": "edad_perseguidor", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_perseguidor", "value": "MEDIUM"},
+      {"name": "edad_rival", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_rival", "value": "MEDIUM"}
+    ],
+    "text": "ALB está a 1,7 s de BOR desde hace 2 vueltas, con neumáticos medios de 11 vueltas contra medios de 11: ventana de undercut."
+  },
+  {
+    "rule": "undercut_window",
+    "key": "undercut_window:14:77:1",
+    "t": "2026-06-14T13:19:32.983000+00:00",
+    "lap": 12,
+    "drivers": [14, 77],
+    "evidence": [
+      {"name": "gap_s", "value": 0.398, "unit": "s"},
+      {"name": "vueltas_seguidas", "value": 2, "unit": "vueltas"},
+      {"name": "posicion_perseguidor", "value": 21},
+      {"name": "vuelta_perseguidor", "value": 11, "unit": "vuelta"},
+      {"name": "edad_perseguidor", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_perseguidor", "value": "HARD"},
+      {"name": "edad_rival", "value": 11, "unit": "vueltas"},
+      {"name": "compuesto_rival", "value": "MEDIUM"}
+    ],
+    "text": "ALO está a 0,4 s de BOT desde hace 2 vueltas, con neumáticos duros de 11 vueltas contra medios de 11: ventana de undercut."
+  },
+  {
+    "rule": "undercut_window",
+    "key": "undercut_window:6:27:1",
+    "t": "2026-06-14T13:20:33.267000+00:00",
+    "lap": 13,
+    "drivers": [6, 27],
+    "evidence": [
+      {"name": "gap_s", "value": 1.143, "unit": "s"},
+      {"name": "vueltas_seguidas", "value": 2, "unit": "vueltas"},
+      {"name": "posicion_perseguidor", "value": 9},
+      {"name": "vuelta_perseguidor", "value": 12, "unit": "vuelta"},
+      {"name": "edad_perseguidor", "value": 12, "unit": "vueltas"},
+      {"name": "compuesto_perseguidor", "value": "MEDIUM"},
+      {"name": "edad_rival", "value": 12, "unit": "vueltas"},
+      {"name": "compuesto_rival", "value": "SOFT"}
+    ],
+    "text": "HAD está a 1,1 s de HUL desde hace 2 vueltas, con neumáticos medios de 12 vueltas contra blandos de 12: ventana de undercut."
+  }
+]

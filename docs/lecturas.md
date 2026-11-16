@@ -133,11 +133,11 @@ El stint 1 de LIN es `lap_start = 1`, `tyre_age_at_start = 0`, intermedios. Al c
 
 No se subió el valor para limpiar la salida: sería calibrar con las mismas tres carreras que fijan el golden, y las vueltas 12 a 15 son justo la ventana previa a la primera parada. Queda para H2.
 
-**La regla no conoce las vueltas que quedan.** `SessionMeta` no trae el total de la carrera, así que la regla puede abrir una ventana a pocas vueltas de la bandera a cuadros, donde un undercut ya no tiene sentido. Queda pendiente (agregar el total de vueltas al modelo o a la configuración del circuito).
+**Vueltas restantes (resuelto en H2 t2).** `SessionMeta` sigue sin traer el total de la carrera, pero `circuits.toml` ya tiene el de los circuitos con una carrera completa verificada (`Circuit.vueltas`); `Replay` lo carga en `RaceState.total_laps` al construirse y tras cada seek hacia atrás. La guarda `min_vueltas_restantes` (11, empírico; ver [Umbrales](#umbrales-todos-sin-calibrar)) no abre la ventana si al perseguidor le quedan menos. Sin el dato (circuito todavía no verificado), la guarda no se aplica, igual que antes.
 
 ## Umbrales: todos sin calibrar
 
-Los valores viven en `config/readings.toml`, cada sección con `calibrated = false`. Son criterios iniciales razonados, no resultados medidos. Cambiar un valor cambia la salida y pasa por golden tests.
+Los valores viven en `config/readings.toml`, cada sección con `calibrated = false`. La tabla de abajo es la justificación inicial de H1 (criterio razonado, no resultado medido); el estado real de cada uno, después de la calibración de H2 t2, está en [Calibración de `undercut_window`](#calibración-de-undercut_window-h2-t2) y en los comentarios de `readings.toml`. Cambiar un valor cambia la salida y pasa por golden tests.
 
 | Umbral | Valor | Justificación inicial |
 |--------|-------|-----------------------|
@@ -147,6 +147,7 @@ Los valores viven en `config/readings.toml`, cada sección con `calibrated = fal
 | `[undercut_window] confirm_laps` | 2 | Evita avisar por un acercamiento de una vuelta |
 | `[undercut_window] min_lap` | 5 | Guarda contra el comienzo de carrera. No cambia la salida de las tres carreras de prueba; ver [Lecturas en las primeras vueltas](#lecturas-en-las-primeras-vueltas) |
 | `[undercut_window] recent_stop_laps` | 3 | Un juego recién puesto no tiene el desgaste que hace útil el undercut, y tras una parada el intervalo todavía se está asentando |
+| `[undercut_window] min_vueltas_restantes` | 11 | Agregado en H2 t2. Empírico: percentil 10 de vueltas restantes en las 176 paradas reales bajo verde de Barcelona, Austria, Hungría y São Paulo. No mide tasa de éxito del undercut, solo hasta dónde los datos muestran paradas reales |
 
 **Por qué no hay calibración todavía.** En São Paulo y Mónaco completas hay 15 parejas (perseguidor y rival) en que el perseguidor para con bandera verde y el rival para dentro de las 5 vueltas siguientes. Las paradas se concentran en una tanda, así que casi todos los undercut "se logran" a cualquier distancia (en São Paulo, 11 de 11): la muestra no discrimina umbrales. Se recalibra con Australia y el golden de H2.
 
@@ -161,7 +162,86 @@ Los valores viven en `config/readings.toml`, cada sección con `calibrated = fal
 
 Son 8 evaluables de 15; de ellas, 5 quedan fuera por las guardas o por no tener rival. La medición usa las sesiones completas (`data/`, no versionadas).
 
-**Ruido observado.** Sobre las sesiones completas, `undercut_window` emite 13 lecturas en Mónaco, 34 en São Paulo y 7 en Australia. Ninguna sale antes de la vuelta 12 (ver [Lecturas en las primeras vueltas](#lecturas-en-las-primeras-vueltas)); las de las últimas vueltas (Mónaco 73 a 78) las explica que la regla no conoce el total de vueltas. Es consecuencia de umbrales sin calibrar y se revisa en H2.
+**Ruido observado.** Sobre las sesiones completas, con la guarda de vueltas restantes ya activa, `undercut_window` emite 7 lecturas en Mónaco, 34 en São Paulo y 5 en Australia (antes de H2 t2: 13, 34 y 7; la guarda sacó las de Mónaco en las vueltas 73 a 78 y las de Australia más tardías, que no dejaban margen para un undercut). Ninguna sale antes de la vuelta 12 (ver [Lecturas en las primeras vueltas](#lecturas-en-las-primeras-vueltas)). El resto es consecuencia de `max_gap_s` y `min_tyre_age_laps`, con evidencia parcial desde H2 t2 (ver abajo).
+
+### Calibración de `undercut_window` (H2 t2)
+
+Mide intentos reales de undercut, independientes de que la regla de hoy los haya marcado:
+para cada parada real de un perseguidor P (`StopTracker`, no `stop_duration` crudo), se mira
+al auto R que iba inmediatamente adelante en el instante anterior. Código en
+`services/core/src/apexpulse/calibracion.py`; se corre con `make calibrar`.
+
+**Categorías de un intento** (justificación completa en el docstring del módulo):
+
+| Categoría | Significa | Cuenta para la tasa de éxito |
+|-----------|-----------|-------------------------------|
+| `escalado` | R para de verdad dentro de K vueltas de la parada de P | Sí: éxito si P queda adelante de R |
+| `ya_habia_parado` | R ya había parado antes que P en este ciclo | No (ni éxito ni fracaso) |
+| `no_respondio_en_k` | R no para dentro de K vueltas (tarde o nunca) | No en la métrica principal; con proxy a un horizonte fijo `Lp+K`, para la sensibilidad con y sin esta categoría |
+| `sin_rival_comparable` | No hay R, o no pasa las guardas de calidad de dato que ya usa la regla | No |
+| `no_evaluable` | Falta el dato para comparar (vuelta de salida sin completar) | No |
+
+"Volvieron a pista" = ambos completaron su vuelta de salida (la primera del stint nuevo). La
+comparación usa `position`, no el hueco puntual: un tercer auto que se cruza entre P y R en
+ese instante cuenta como que el undercut no funcionó aunque P sea más rápido. Es ruido
+conocido, no corregido.
+
+**K = 5**, con sensibilidad medida también en K = 3 y K = 8 (no cambia las conclusiones de
+abajo). `K` acota cuántas vueltas después de la parada de P se espera la respuesta de R.
+
+**N mínimo = 8** por celda, fijado antes de correr la calibración: por debajo, la tasa se
+calcula pero se marca "insuficiente" en vez de mostrarla como una medición confiable. El
+intervalo es el de Wilson al 95 %.
+
+**Orden real.** Esta regla de decisión se escribió después de correr la primera calibración
+sobre Barcelona, Austria, Hungría y São Paulo, no antes como debía ser. Los valores que fija
+(K, el n mínimo, los candidatos) ya estaban en el código antes de esa corrida, así que no se
+ajustaron para forzar un resultado, pero el orden correcto era escribirlos acá primero. Queda
+así para la próxima vez.
+
+**Regla de decisión.** La línea de base de un candidato es su propio complemento: los
+intentos `escalado` que no cumplen ese umbral en particular, no una tasa global fija. Un
+candidato se adopta solo si, entre los intentos `escalado`, su tasa de éxito acumulada
+(gap ≤ candidato; edad ≥ candidato) supera la de su complemento **y** el intervalo de Wilson
+del candidato no contiene la tasa puntual del complemento, con `n >= 8` en los dos lados. Si
+ningún candidato cumple, se mantiene el valor actual de `readings.toml` y se documenta "sin
+evidencia suficiente" o "no testeable" según corresponda. Los tramos disjuntos de gap son una
+tabla de apoyo para ver dónde cambia la tasa, no la que decide.
+
+**Resultado** (K = 5; K = 3 y K = 8 no cambian ninguna de estas conclusiones):
+
+| Parámetro | Resultado | Evidencia |
+|-----------|-----------|-----------|
+| `max_gap_s` | Se mantiene en 2,0 s | **Con evidencia.** `gap <= 2,0` da 70% (n=10, Wilson [40%,89%]) contra 6% de su complemento (n=16, Wilson [1%,28%]): cumple la regla, y con el margen más amplio entre los candidatos que también cumplen (1,5; 2,5 y 3,0 s) |
+| `min_tyre_age_laps` | Se mantiene en 10 | **No testeable con este corpus.** De 26 intentos escalados, ninguno tiene al perseguidor con menos de 10 vueltas de uso al parar: el complemento de "edad >= 10" tiene `n = 0`. Sigue siendo el criterio físico original, sin dato que lo mida |
+| Diferencia de edad entre perseguidor y rival | No se agrega filtro | **Sin evidencia suficiente.** `>= 1` da `n = 5` y `>= 3` da `n = 1`, los dos por debajo del mínimo |
+
+Ninguno de los tres valores cambió. `readings.toml` queda con `calibrated = false` en
+`[undercut_window]`: tiene un parámetro con evidencia real (`max_gap_s`) pero los otros siguen
+sin poder medirse o sin evidencia suficiente, así que la sección no está calibrada entera.
+
+**Validación**, una sola corrida sobre Austin y Singapur con los umbrales de arriba, después de
+elegirlos con la calibración (`make calibrar SESIONES=2026-estados-unidos-r,2026-singapur-r`):
+`gap <= 2,0 s` da `n = 1`, **insuficiente**, sin consecuencias sobre la decisión. El complemento
+(`gap > 2,0 s`) da 0% de éxito (`n = 10`, Wilson [0%, 28%]), consistente con la calibración (el
+complemento de 2,0 s también dio una tasa muy baja ahí): estas dos carreras tuvieron pocos
+intentos con el gap cerrado que pide el umbral, no un resultado que lo contradiga.
+
+**Corpus y partición, fijados antes de correr.** Calibración: Barcelona, Austria, Hungría y
+São Paulo (carreras completas en `data/`, no versionadas). Validación: Estados Unidos (Austin)
+y Singapur, consultada una sola vez, después de elegir los umbrales con la calibración, con un
+único número de salida. Quedan fuera Mónaco (bandera roja) y las tres carreras del escaneo con
+bandera roja real o lluvia (Zandvoort, Monza, México; Miami, Zandvoort y Kuala Lumpur son las
+lluviosas). Australia no entra en ninguno de los dos conjuntos: ya se usa extensivamente para
+el golden y los casos de borde de `cheap_stop`, y se prefirió no mezclarla con la calibración
+de otra regla.
+
+Barcelona y Hungría también tienen una ventana versionada en `fixtures/sessions/` (vueltas 4 a
+14, la primera tanda de paradas en verde, con y sin lectura de `undercut_window` con los
+umbrales de hoy). El golden que se agregue sobre esas ventanas es **regresión**, no validación
+de que las lecturas sean correctas: fija la salida actual para detectar cambios no
+intencionales; lo que valida si las lecturas son útiles es esta calibración, sobre las
+carreras completas.
 
 ## Golden y propiedades
 
@@ -170,16 +250,17 @@ Qué garantiza cada nivel, en `services/core/tests/`:
 | Archivo | Garantía |
 |---------|----------|
 | `test_golden.py` y `golden/*.cheap_stop.json` | La salida completa de `cheap_stop` (clave, instante, vuelta, evidencia y texto) sobre Mónaco, Australia y São Paulo no cambia sin que alguien lo decida |
-| `test_propiedades.py` | `undercut_window`: causalidad, una lectura por pareja y stint, estabilidad tras seek y respeto de `min_lap` |
+| `test_golden.py` y `golden/*.undercut_window.json` | Igual, para `undercut_window` sobre Barcelona y Hungría (H2 t2) |
+| `test_propiedades.py` | `undercut_window`: causalidad, una lectura por pareja y stint, estabilidad tras seek, respeto de `min_lap` y, si hay sesión completa, que la ventana del fixture coincida con la completa filtrada a esa ventana |
 | `test_pipeline.py` | Dos corridas desde los fixtures (descarga simulada, normalización, Parquet, replay y CLI) dan salida idéntica, hasta en los bytes del Parquet |
 | `test_readings.py` | Cada rama y guarda con eventos sintéticos, y los casos reales con texto exacto |
 
-**Por qué `undercut_window` no tiene golden.** Sus umbrales están sin calibrar: fijar hoy su salida congelaría 54 lecturas que se van a mover en H2. Las propiedades valen igual después de calibrar. El golden se agrega con la calibración.
+**Por qué `undercut_window` no tiene golden sobre Mónaco, Australia ni São Paulo.** `min_tyre_age_laps` no es testeable con el corpus de calibración y no exigir diferencia de edad quedó sin evidencia suficiente (ver [Calibración](#calibración-de-undercut_window-h2-t2)): fijar su salida ahí congelaría lecturas que todavía pueden cambiar si aparece evidencia nueva. Barcelona y Hungría sí tienen golden porque son las ventanas que se cortaron para esto, sabiendo que es regresión (fija lo que hay, no valida que esté bien) y no validación de calidad, que la da la calibración sobre las carreras completas.
 
 **Regenerar un golden.** Solo con un motivo y revisando el diff completo; el motivo va en el mensaje del commit:
 
 ```bash
-make golden-update                      # los tres
+make golden-update                      # todas las sesiones con golden
 make golden-update SESSION=2026-monaco-r
 git diff services/core/tests/golden
 ```
@@ -192,6 +273,7 @@ El test normal nunca escribe: si la salida cambia, falla y apunta a `make golden
 - *Una lectura por pareja y stint*: ninguna clave repetida ni dos lecturas con los mismos pilotos y stint del perseguidor.
 - *Estabilidad tras seek*: llegar a un punto por seek (adelante o atrás) y seguir da lo mismo que reproducir de corrido, sin repetir lo anterior.
 - *Vuelta mínima*: con `min_lap = N`, toda lectura tiene `vuelta_perseguidor >= N`.
+- *Ventana igual a la completa* (Barcelona y Hungría, H2 t2): las lecturas del fixture son las de la carrera completa con `vuelta_perseguidor` dentro del rango que se recortó, ni una lectura de más ni de menos.
 
 Si están las sesiones completas en `data/canonical` (compu del autor), las propiedades también corren sobre ellas; en CI se saltean.
 

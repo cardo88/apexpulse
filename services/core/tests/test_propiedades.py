@@ -123,8 +123,17 @@ def _una_por_pareja_y_stint(lecturas: Sequence[Reading]) -> None:
 
 
 def test_una_lectura_por_pareja_y_stint_en_los_fixtures(parquets: dict[str, Path]) -> None:
-    todas = [r for p in parquets.values() for _, r in _plegar(list(read_events(p)))]
-    _una_por_pareja_y_stint(todas)
+    """Por sesión: la `key` no lleva el identificador de sesión, así que poner todo junto en
+    una sola lista puede chocar por casualidad (mismos números de piloto, pareja y stint, en
+    dos carreras). Mónaco no ejercita `undercut_window` (ver test_pipeline.py); se saltea."""
+    probadas = 0
+    for parquet in parquets.values():
+        lecturas = [r for _, r in _plegar(list(read_events(parquet)))]
+        if not _undercut(lecturas):
+            continue
+        _una_por_pareja_y_stint(lecturas)
+        probadas += 1
+    assert probadas > 0
 
 
 @pytest.mark.parametrize("sesion", list(FIXTURES_POR_SESION))
@@ -202,3 +211,20 @@ def test_la_vuelta_minima_en_carreras_completas(sesion: str) -> None:
         for _, r in _plegar(eventos, _con_minimo(minimo)):
             if r.rule == REGLA:
                 assert r.evidence_value("vuelta_perseguidor") >= minimo  # type: ignore[operator]
+
+
+# La ventana del fixture coincide con la carrera completa -----------------------------------
+# (H2 t2): un fixture recortado no puede inventar ni perder lecturas dentro de su propia
+# ventana. Solo para sesiones con una carrera completa en data/canonical (se saltea en CI).
+
+VUELTA_HASTA = {"2026-barcelona-r": 14, "2026-hungria-r": 14}
+
+
+@pytest.mark.parametrize("sesion", list(VUELTA_HASTA))
+def test_las_lecturas_del_fixture_coinciden_con_la_completa_filtrada_a_la_ventana(
+    sesion: str, parquets: dict[str, Path]
+) -> None:
+    del_fixture = [r for _, r in _plegar(list(read_events(parquets[sesion])))]
+    de_la_completa = [r for _, r in _plegar(list(read_events(_completa(sesion))))]
+    hasta = VUELTA_HASTA[sesion]
+    assert del_fixture == [r for r in de_la_completa if r.lap <= hasta]

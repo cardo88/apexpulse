@@ -19,6 +19,8 @@ from apexpulse.readings import Engine, Reading
 from apexpulse.replay import ConsolePrinter, FakeClock, Replay
 from conftest import (
     OPENF1_AUSTRALIA,
+    OPENF1_BARCELONA,
+    OPENF1_HUNGRIA,
     OPENF1_MONACO,
     OPENF1_SAO_PAULO,
     normalizar_fixture,
@@ -26,11 +28,13 @@ from conftest import (
 
 GOLDEN = Path(__file__).resolve().parent / "golden"
 
-# Las tres carreras con fixtures de sessions/: ventanas de la carrera, no carreras completas.
+# Las carreras con fixtures de sessions/: ventanas de la carrera, no carreras completas.
 FIXTURES_POR_SESION: dict[str, Path] = {
     "2026-monaco-r": OPENF1_MONACO,
     "2026-australia-r": OPENF1_AUSTRALIA,
     "2026-sao-paulo-r": OPENF1_SAO_PAULO,
+    "2026-barcelona-r": OPENF1_BARCELONA,
+    "2026-hungria-r": OPENF1_HUNGRIA,
 }
 
 

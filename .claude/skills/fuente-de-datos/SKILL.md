@@ -47,6 +47,18 @@ class SourceAdapter(Protocol):          # sources/base.py
   (bloqueo de IPs). En CI se usan fixtures.
 - Nunca usar credenciales de F1 TV.
 
+## Escanear carreras antes de bajarlas
+Para elegir qué sesiones de un año sirven para un fixture o una calibración
+(lluvia, paradas en verde, SC/VSC, bandera roja) sin bajarlas enteras, usar
+`make escanear YEAR=<año>` (`sources/openf1_scan.py`), no un script aparte:
+pide solo `sessions`, `weather`, `race_control` y `pit`, con el mismo
+`RateLimiter` y backoff que `fetch`, y cachea en `data/raw/<año>/_escaneo/`.
+Reusa `trackstatus.derive_track_status` para el estado de pista: no
+reimplementar esa derivación con un filtro de texto propio. Un filtro que
+busque `"RED FLAG" in texto` confunde `"CHEQUERED FLAG"` con una bandera roja
+real (contiene la subcadena); usar `texto.startswith("RED FLAG")` o `flag ==
+"RED"`, nunca `in`. Detalle en docs/fuentes-de-datos.md.
+
 ## Fuente nueva
 1. Documentar en docs/fuentes-de-datos.md: URL base, autenticación, límites,
    términos de uso y cobertura temporal.

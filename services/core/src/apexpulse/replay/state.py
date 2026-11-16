@@ -53,6 +53,9 @@ class RaceState:
     weather: WeatherSample | None = None
     last_t: datetime | None = None
     events_applied: int = 0
+    # Total de vueltas de la carrera, de `circuits.toml` (`Replay` lo completa; None si el
+    # circuito no tiene el dato validado todavía). No es un fold de eventos: no cambia con `apply`.
+    total_laps: int | None = None
 
     @property
     def lap(self) -> int:

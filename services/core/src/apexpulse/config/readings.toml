@@ -1,11 +1,18 @@
 # Umbrales del motor de lecturas (services/core/src/apexpulse/readings/).
 #
 # Cambiar un valor cambia la salida: pasa por golden tests (AGENTS.md). Cada sección lleva
-# `calibrated`: mientras sea false, el valor es un criterio inicial razonado, no un resultado
-# medido. Con las dos primeras carreras completas (São Paulo y Mónaco) hay 15 parejas
-# perseguidor y rival en que ambos paran con bandera verde; las paradas se concentran en una
-# tanda, así que la muestra no alcanza para calibrar. Se recalibra con 2026-australia-r y el
-# golden de H2. Detalle y justificación en docs/lecturas.md.
+# `calibrated`: mientras sea false, al menos un valor es un criterio inicial razonado, no un
+# resultado medido, aunque otros de la misma sección ya tengan evidencia (ver comentarios por
+# campo). Detalle y justificación en docs/lecturas.md.
+#
+# H2 t2 (2026-11-15) calibró `undercut_window` con intentos reales de undercut sobre Barcelona,
+# Austria, Hungría y São Paulo completas (make calibrar): `max_gap_s` queda con evidencia a
+# favor del valor actual; `min_tyre_age_laps` no es testeable con este corpus (ningún intento
+# real tiene al perseguidor con menos de 10 vueltas de uso, así que no hay con qué comparar);
+# exigir diferencia de edad entre perseguidor y rival no tiene evidencia suficiente (muestra
+# chica). Ninguno cambió de valor. Validado una sola vez sobre Austin y Singapur. Se agregó
+# `min_vueltas_restantes`, guarda empírica (no calibrada por tasa de éxito) contra abrir una
+# ventana cuando ya quedan pocas vueltas para capitalizar un undercut.
 
 [stops]
 calibrated = false
@@ -17,23 +24,40 @@ confirm_timeout_laps = 2
 
 [undercut_window]
 calibrated = false
-# Distancia máxima al auto de adelante. Dentro de 2 s el perseguidor sigue en el aire sucio del
-# rival y no puede pasarlo en pista; en 2026 no hay DRS, así que no hay un umbral de 1 s.
+# Con evidencia (H2 t2, make calibrar, K=5): entre los intentos reales de undercut con
+# gap <= 2,0 s, 70% termina con el perseguidor adelante (n=10, Wilson [40%,89%]) contra 6% de
+# los que quedan afuera (n=16, Wilson [1%,28%]): el intervalo del candidato no toca la tasa del
+# complemento. Dentro de 2 s el perseguidor sigue en el aire sucio del rival y no puede pasarlo
+# en pista; en 2026 no hay DRS, así que no hay un umbral de 1 s. Validado una sola vez sobre
+# Austin y Singapur (docs/lecturas.md).
 max_gap_s = 2.0
-# Edad mínima del neumático del perseguidor, en vueltas de uso. Con juegos jóvenes la
-# degradación todavía no da ventaja a un juego nuevo. Criterio físico sin respaldo en datos:
-# en São Paulo las primeras paradas son a las 14 vueltas de uso, pero Mónaco tiene paradas
-# verdes en las vueltas 3, 4 y 9.
+# No testeable con el corpus de H2 t2: de 26 intentos escalados, ninguno tiene al perseguidor
+# con menos de 10 vueltas de uso al parar (el complemento de "edad >= 10" tiene n=0), así que no
+# hay con qué comparar la tasa de éxito. Queda el criterio físico original: con juegos jóvenes
+# la degradación todavía no da ventaja a un juego nuevo. En São Paulo las primeras paradas son
+# a las 14 vueltas de uso, pero Mónaco tiene paradas verdes en las vueltas 3, 4 y 9.
 min_tyre_age_laps = 10
-# Vueltas seguidas con las condiciones vigentes antes de emitir. Evita avisar por un
-# acercamiento de una vuelta (por ejemplo, un auto doblado que se interpone).
+# Sin evidencia suficiente (H2 t2) para exigir diferencia de edad entre perseguidor y rival:
+# >= 1 vuelta de diferencia da n=5 y >= 3 da n=1, los dos por debajo del n mínimo (8). No se
+# agrega ese filtro por ahora; queda documentado para no repetir la pregunta sin datos nuevos.
+#
+# Vueltas seguidas con las condiciones vigentes antes de emitir. Criterio físico, no calibrado:
+# evita avisar por un acercamiento de una vuelta (por ejemplo, un auto doblado que se interpone).
 confirm_laps = 2
-# Vuelta mínima del perseguidor (última vuelta completada) para evaluar. Guarda, no umbral de
-# ritmo: en las primeras vueltas el intervalo corto lo explica la largada, no el ritmo, y un
-# juego usado puede cumplir la edad mínima desde la vuelta 3. Con juegos nuevos la edad mínima
-# ya deja la primera lectura en la vuelta 12, así que con 5 no cambia la salida de las tres
-# carreras de prueba (1 la desactiva). Sin calibrar.
+# Vuelta mínima del perseguidor (última vuelta completada) para evaluar. Criterio físico, no
+# calibrado: guarda, no umbral de ritmo. En las primeras vueltas el intervalo corto lo explica
+# la largada, no el ritmo, y un juego usado puede cumplir la edad mínima desde la vuelta 3. Con
+# juegos nuevos la edad mínima ya deja la primera lectura en la vuelta 12, así que con 5 no
+# cambia la salida de las carreras de prueba (1 la desactiva).
 min_lap = 5
-# Sin parada propia ni del rival en las últimas N vueltas: un juego recién puesto no tiene el
-# desgaste que hace útil el undercut, y tras una parada el intervalo todavía se está asentando.
+# Criterio físico, no calibrado: sin parada propia ni del rival en las últimas N vueltas, un
+# juego recién puesto no tiene el desgaste que hace útil el undercut, y tras una parada el
+# intervalo todavía se está asentando.
 recent_stop_laps = 3
+# Empírico (H2 t2): percentil 10 de "vueltas restantes" (total de circuits.toml menos la vuelta
+# de la pasada) en las 176 paradas reales bajo bandera verde de Barcelona, Austria, Hungría y
+# São Paulo completas. No calibrado por tasa de éxito como `max_gap_s`: es una guarda de
+# alcance (a cuántas vueltas del final todavía aparecen paradas reales en los datos), no un
+# umbral que se eligió porque mejore el undercut. Sin el total de vueltas del circuito (si no
+# está en circuits.toml), esta guarda no se aplica.
+min_vueltas_restantes = 11

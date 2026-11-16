@@ -3,6 +3,10 @@
 # La clave es el slug del identificador (minúsculas, sin acentos, palabras separadas por guion).
 # - nombre: nombre legible en español.
 # - openf1: valor exacto de circuit_short_name en https://api.openf1.org/v1/sessions.
+# - vueltas: total de vueltas de la carrera. Ausente mientras no haya una carrera completa en
+#   data/ para validarlo (no se copia del calendario sin verificar contra el dato real); una
+#   carrera roja o acortada puede dar un total distinto del programado, así que se toma de la
+#   vuelta del evento `FINISHED` de una carrera real, no de una tabla externa.
 #
 # Verificado contra sessions?year=2026 el 2026-11-14. Para sumar un circuito, consultar
 # ese endpoint para el año que corresponda y copiar circuit_short_name tal cual.
@@ -18,10 +22,12 @@ openf1 = "Jeddah"
 [circuitos.australia]
 nombre = "Australia"
 openf1 = "Melbourne"
+vueltas = 58  # 2026-australia-r, FINISHED (CHEQUERED FLAG) en la vuelta 58
 
 [circuitos.austria]
 nombre = "Austria"
 openf1 = "Spielberg"
+vueltas = 71  # 2026-austria-r, FINISHED (CHEQUERED FLAG) en la vuelta 71
 
 [circuitos.azerbaiyan]
 nombre = "Azerbaiyán"
@@ -34,6 +40,7 @@ openf1 = "Sakhir"
 [circuitos.barcelona]
 nombre = "Barcelona"
 openf1 = "Catalunya"
+vueltas = 66  # 2026-barcelona-r, FINISHED (CHEQUERED FLAG) en la vuelta 66
 
 [circuitos.belgica]
 nombre = "Bélgica"
@@ -54,6 +61,7 @@ openf1 = "Imola"
 [circuitos.estados-unidos]
 nombre = "Estados Unidos"
 openf1 = "Austin"
+vueltas = 56  # 2026-estados-unidos-r, FINISHED (CHEQUERED FLAG) en la vuelta 56
 
 [circuitos.gran-bretana]
 nombre = "Gran Bretaña"
@@ -62,6 +70,7 @@ openf1 = "Silverstone"
 [circuitos.hungria]
 nombre = "Hungría"
 openf1 = "Hungaroring"
+vueltas = 70  # 2026-hungria-r, FINISHED (CHEQUERED FLAG) en la vuelta 70
 
 [circuitos.italia]
 nombre = "Italia"
@@ -90,6 +99,7 @@ openf1 = "Miami"
 [circuitos.monaco]
 nombre = "Mónaco"
 openf1 = "Monte Carlo"
+vueltas = 78  # 2026-monaco-r, FINISHED (CHEQUERED FLAG) en la vuelta 78
 
 [circuitos.paises-bajos]
 nombre = "Países Bajos"
@@ -102,7 +112,9 @@ openf1 = "Lusail"
 [circuitos.sao-paulo]
 nombre = "São Paulo"
 openf1 = "Interlagos"
+vueltas = 71  # 2026-sao-paulo-r, FINISHED (SESSION FINISHED) en la vuelta 71
 
 [circuitos.singapur]
 nombre = "Singapur"
 openf1 = "Singapore"
+vueltas = 62  # 2026-singapur-r, FINISHED (CHEQUERED FLAG) en la vuelta 62

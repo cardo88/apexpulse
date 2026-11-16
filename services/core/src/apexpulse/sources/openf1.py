@@ -116,7 +116,8 @@ ENDPOINTS: tuple[str, ...] = (
 MANIFEST = "manifest.json"
 
 
-def _default_client() -> httpx.Client:
+def default_client() -> httpx.Client:
+    """Cliente HTTP con la base y las cabeceras de OpenF1; lo reusa `openf1_scan`."""
     return httpx.Client(
         base_url=BASE_URL,
         timeout=httpx.Timeout(60.0, connect=10.0),
@@ -139,7 +140,7 @@ class OpenF1Adapter:
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
         max_retries: int = MAX_RETRIES,
     ) -> None:
-        self._client = client or _default_client()
+        self._client = client or default_client()
         self._limiter = limiter or RateLimiter(RATE_LIMITS, sleep=sleep)
         self._sleep = sleep
         self._now = now

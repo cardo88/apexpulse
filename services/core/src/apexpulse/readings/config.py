@@ -28,6 +28,7 @@ class UndercutConfig:
     confirm_laps: int
     recent_stop_laps: int
     min_lap: int
+    min_vueltas_restantes: int
 
 
 @dataclass(frozen=True)
@@ -74,6 +75,7 @@ def load_config(datos: dict[str, Any] | None = None) -> ReadingsConfig:
             "confirm_laps": int,
             "recent_stop_laps": int,
             "min_lap": int,
+            "min_vueltas_restantes": int,
         },
     )
     if s["confirm_timeout_laps"] < 1:
@@ -85,6 +87,10 @@ def load_config(datos: dict[str, Any] | None = None) -> ReadingsConfig:
             raise ConfigError(f"readings.toml [undercut_window] {clave}: mínimo 1")
     if u["recent_stop_laps"] < 0:
         raise ConfigError("readings.toml [undercut_window] recent_stop_laps: no puede ser negativo")
+    if u["min_vueltas_restantes"] < 0:
+        raise ConfigError(
+            "readings.toml [undercut_window] min_vueltas_restantes: no puede ser negativo"
+        )
     return ReadingsConfig(
         stops=StopsConfig(s["calibrated"], s["confirm_timeout_laps"]),
         undercut=UndercutConfig(
@@ -94,6 +100,7 @@ def load_config(datos: dict[str, Any] | None = None) -> ReadingsConfig:
             u["confirm_laps"],
             u["recent_stop_laps"],
             u["min_lap"],
+            u["min_vueltas_restantes"],
         ),
     )
 

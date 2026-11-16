@@ -68,15 +68,18 @@ Cada uno tiene su detalle en [lecturas.md](lecturas.md) o [fuentes-de-datos.md](
 
 | Pendiente | Por qué importa |
 |-----------|-----------------|
-| Calibrar los umbrales de `config/readings.toml` (todos `calibrated = false`), incluida la guarda `min_lap`, con más carreras. Evaluar exigir diferencia de edad o de compuesto con el rival: en 15 de 34 lecturas de São Paulo ambos autos van igual | `undercut_window` emite 13 (Mónaco), 34 (São Paulo) y 7 (Australia) con umbrales iniciales |
-| Golden de `undercut_window`, una vez calibrada | Hoy solo tiene propiedades; fijar su salida antes congelaría lecturas que van a cambiar |
-| Vueltas restantes: agregar el total de vueltas a `SessionMeta` o a `circuits.toml` | La regla abre ventanas a pocas vueltas de la bandera a cuadros (Mónaco, vueltas 73 a 78) |
-| Permitir `tyre_age` nulo en el modelo en lugar de omitir el stint | Hoy se omiten con aviso; ninguna de las tres carreras tiene casos |
+| Permitir `tyre_age` nulo en el modelo en lugar de omitir el stint | Hoy se omiten con aviso; ninguna de las carreras de prueba tiene casos |
 | Las 3 reglas restantes (degradación, batalla, condiciones) y el adaptador del archivo estático | Alcance de H2 |
 
 Resueltos en H2 t1: `pit.lap_number` incoherente en Australia (ahora se deriva de `laps`) y si
 `*_ENDING` cuenta como neutralización para `cheap_stop` (`SC_ENDING` sí, `VSC_ENDING` no). El
 stint sin `tyre_age_at_start` del piloto 27 en Australia se investigó: su única vuelta registrada
 llega con `date_start` nulo en `laps`, sin otro dato para ubicar el stint; queda omitido con
-aviso, como antes. Detalle de los tres en [lecturas.md](lecturas.md) y
-[fuentes-de-datos.md](fuentes-de-datos.md).
+aviso, como antes.
+
+Resueltos en H2 t2: calibración de `undercut_window` sobre Barcelona, Austria, Hungría y São
+Paulo (`max_gap_s` con evidencia; `min_tyre_age_laps` no testeable con ese corpus; diferencia de
+edad entre perseguidor y rival sin evidencia suficiente), golden sobre las ventanas de Barcelona
+y Hungría, y la guarda de vueltas restantes (`min_vueltas_restantes`, empírica) con el total de
+vueltas validado en `circuits.toml` para los ocho circuitos con una carrera completa. Detalle de
+todo en [lecturas.md](lecturas.md) y [fuentes-de-datos.md](fuentes-de-datos.md).

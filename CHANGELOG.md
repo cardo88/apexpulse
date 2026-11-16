@@ -13,6 +13,46 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - El normalizador de OpenF1 deriva `PitLane.lap` de `laps` por el instante de la pasada, en vez
   de usar el `lap_number` crudo de `pit` (incoherente en 10 de 26 pasadas de Australia; cambia
   el golden de `cheap_stop` de esa sesión) (H2 t1).
+- `undercut_window`: la línea de base para elegir `max_gap_s` y `min_tyre_age_laps` pasa a ser
+  el complemento de cada candidato (los intentos que no cumplen ese umbral en particular), no
+  una tasa global fija; la regla de decisión en docs/lecturas.md queda documentada así, aclarando
+  que se escribió después de la primera corrida de `make calibrar`, no antes (H2 t2).
+- `max_gap_s` (2,0 s) queda con evidencia empírica a favor del valor actual; `min_tyre_age_laps`
+  (10) no es testeable con el corpus disponible; no se agrega un filtro de diferencia de edad
+  entre perseguidor y rival por falta de evidencia suficiente. Ningún valor cambió (H2 t2).
+- Validación única sobre Austin y Singapur después de elegir los umbrales con la calibración
+  (H2 t2).
+
+### Added
+- Tests de borde para la derivación de `PitLane.lap`: pasada en la vuelta 1 (límite conocido,
+  deriva vuelta 0), bajo bandera roja y en el instante exacto de un inicio de vuelta (H2 t2).
+- `make escanear YEAR=<año>`: escaneo liviano de las carreras de OpenF1 de un año (lluvia,
+  paradas en verde, SC/VSC, bandera roja), para elegir sesiones sin bajarlas enteras (H2 t2).
+- Test explícito de que `"CHEQUERED FLAG"` no se confunde con una bandera roja real (contiene
+  la subcadena `"RED FLAG"`; encontrado al escribir el escaneo de arriba) (H2 t2).
+- `make calibrar`: mide intentos reales de undercut (independientes de la lectura) sobre
+  sesiones normalizadas, con tablas de tasa de éxito acumulada por gap y por edad, tramos de
+  apoyo, diferencia de edad y sensibilidad de K; para elegir `max_gap_s` y `min_tyre_age_laps`
+  de `undercut_window` con la regla de decisión de docs/lecturas.md (H2 t2).
+- Fixtures de Barcelona y Hungría (`fixtures/sessions/2026-barcelona-r` y `2026-hungria-r`),
+  vueltas 4 a 14: la primera tanda de paradas en verde de cada carrera, con y sin lectura de
+  `undercut_window` (H2 t2).
+- `undercut_window`: guarda `min_vueltas_restantes` (11, empírico: percentil 10 de vueltas
+  restantes en paradas reales bajo verde de Barcelona, Austria, Hungría y São Paulo). No abre
+  la ventana si al perseguidor le quedan menos, cuando el circuito tiene el total de vueltas
+  validado en `circuits.toml`. `RaceState.total_laps`, completado por `Replay` desde
+  `circuits.toml` (H2 t2).
+- `Circuit.vueltas` (total de la carrera) en `circuits.toml`, validado contra el evento
+  `FINISHED` de una carrera completa real, para los 8 circuitos con una sesión bajada (Mónaco,
+  Australia, São Paulo, Barcelona, Austria, Hungría, Estados Unidos y Singapur) (H2 t2).
+- Golden de `undercut_window` sobre las ventanas de Barcelona y Hungría; es regresión, no
+  valida que las lecturas sean correctas (eso lo da la calibración) (H2 t2).
+- Test de que las lecturas de un fixture coinciden con las de la carrera completa filtradas a
+  esa ventana (Barcelona y Hungría; se saltea sin la carrera completa en `data/`) (H2 t2).
+
+### Fixed
+- `Replay.seek` hacia atrás perdía `RaceState.total_laps` al reiniciar el estado; lo conserva
+  (H2 t2).
 
 ## [0.1.0] - 2026-11-15
 

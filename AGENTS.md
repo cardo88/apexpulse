@@ -33,6 +33,7 @@ Todo se ejecuta por make. La columna "Desde" indica cuándo existe cada target.
 | make check-docs / check-skills     | Docs y skills al día con el cambio             | Disponible |
 | make check-private                 | Falla si algo privado quedó versionado         | Disponible |
 | make mapa                          | Regenera docs/ai/mapa-codigo.md                | Disponible |
+| make escanear YEAR=<año>           | Escaneo liviano de las carreras de OpenF1 de un año | Disponible |
 | make fetch SESSION=<id>            | Descarga y cachea una sesión de OpenF1         | Disponible |
 | make normalize SESSION=<id>        | Genera eventos canónicos                       | Disponible |
 | make replay SESSION=<id> SPEED=<n> | Reproduce por consola (NOWAIT=1, FROM_LAP=<n>) | Disponible |

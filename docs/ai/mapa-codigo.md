@@ -8,6 +8,7 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 |---|---|
 | `apexpulse` | Servicio core de ApexPulse: fuentes, modelo canónico, replay, motor de lecturas y API. |
 | `apexpulse.__main__` | Punto de entrada de `python -m apexpulse`. |
+| `apexpulse.calibracion` | Calibración de `undercut_window`: intentos reales de undercut, independientes de la lectura. |
 | `apexpulse.cli` | Línea de comandos de apexpulse; la invocan los targets de make. |
 | `apexpulse.model` | Modelo canónico de eventos v1 y su persistencia en Parquet (ADR 0002 y 0005). |
 | `apexpulse.model.events` | Eventos canónicos v1: el contrato entre los adaptadores de fuente y el resto del sistema. |
@@ -31,6 +32,7 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 | `apexpulse.sources.openf1` | Adaptador de OpenF1: descarga histórica con caché local, límite de tasa y reintentos. |
 | `apexpulse.sources.openf1_normalize` | Normalizador de OpenF1: del crudo en data/raw a eventos canónicos v1. |
 | `apexpulse.sources.openf1_recorte` | Recorte de una sesión de OpenF1 a una ventana, para armar fixtures versionados. |
+| `apexpulse.sources.openf1_scan` | Escaneo de solo lectura de las carreras de un año en OpenF1, para elegir sesiones. |
 | `apexpulse.sources.ratelimit` | Límite de tasa por ventanas deslizantes, con estado opcional compartido entre ejecuciones. |
 | `apexpulse.sources.rawstore` | Escritura y lectura del crudo en JSONL comprimido con zstd (ADR 0005). |
 | `apexpulse.sources.trackstatus` | Deriva el estado de pista (SC, VSC, rojo) de los mensajes de dirección de carrera. |
@@ -42,9 +44,11 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 | `conftest` | Fixtures compartidos: red bloqueada, reloj falso y OpenF1 simulado con respuestas grabadas. |
 | `contract.test_openf1` | Test de contrato del adaptador OpenF1 contra respuestas grabadas de 2026-sao-paulo-r. |
 | `contract.test_openf1_normalize` | Test de contrato del normalizador OpenF1 y del endpoint race_control con 2026-monaco-r. |
+| `contract.test_openf1_scan` | Test de contrato de `escanear_anio` (`sources/openf1_scan.py`) contra OpenF1 simulado. |
 | `helpers` | Ayudas de los tests de salida completa: pipeline desde fixtures, serialización y golden. |
+| `test_calibracion` | Tests de `calibracion.py`: categorización de intentos de undercut y las tablas de reporte. |
 | `test_cli` | Tests de la línea de comandos (sin red: solo caminos que no llegan a la fuente). |
-| `test_golden` | Golden de `cheap_stop` sobre las tres carreras con fixtures y los casos que lo explican. |
+| `test_golden` | Golden de `cheap_stop` (las tres carreras de H1) y de `undercut_window` (Barcelona y Hungría, |
 | `test_model` | Tests del modelo canónico v1.1: validación de eventos, orden y Parquet. |
 | `test_paquete` | Verifica que el paquete se instala e importa desde el entorno de uv. |
 | `test_pipeline` | Pipeline completo desde los fixtures: dos corridas independientes dan salida idéntica. |
@@ -86,3 +90,5 @@ Generado por `make mapa` (scripts/mapa.py) a partir de los docstrings de módulo
 | `make replay` | Reproduce una sesión por consola (SESSION=<id> [SPEED=<n>] [NOWAIT=1] [FROM_LAP=<n>] [VERBOSE=1]) |
 | `make fixture` | Recorta el crudo a una ventana y regraba fixtures/sessions (SESSION=<id> DESDE=<iso> HASTA=<iso> LAPS=<a>-<b> [SALIDA=<dir>] [VACIAR=<endpoints>]) |
 | `make golden-update` | Regraba tests/golden con la salida actual y muestra el diff (SESSION=<id> para una sola sesión) |
+| `make escanear` | Escaneo de solo lectura de las carreras de OpenF1 de un año (YEAR=<año>; EXCLUIR=<slugs,...>) |
+| `make calibrar` | Intentos reales de undercut y tablas de calibración (SESIONES=<id,id,...>; K=<n,n,...>) |
